@@ -1,0 +1,16 @@
+dist/
+bin/
+vendor/
+coverage.out
+coverage_*.out
+coverage.log
+coverage_summary.txt
+*.test
+*.log
+*.tmp
+*.exe
+.cache/
+.go/
+.worktrees/
+tmp/
+temp/
