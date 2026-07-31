@@ -32,6 +32,25 @@ jobs:
         with:
           go-version-file: go.mod
       - run: make build-all
+      - name: Checksum build artifacts
+        working-directory: dist
+        run: |
+          # Drop stale manifests before globbing so a re-run (or a restored
+          # cache) can never hash a previous run's output. The file list is
+          # frozen into the positional parameters BEFORE any redirect exists,
+          # otherwise the shell would create SHA256SUMS.tmp first and the glob
+          # would pick it up. Glob order is already sorted, so the manifest is
+          # deterministic without GNU-only find/sort extensions.
+          rm -f SHA256SUMS SHA256SUMS.tmp
+          set --
+          for f in *; do
+            [ -f "$f" ] || continue
+            set -- "$@" "$f"
+          done
+          [ "$#" -gt 0 ] || { echo "no build artifacts to checksum" >&2; exit 1; }
+          sha256sum "$@" > SHA256SUMS.tmp
+          mv SHA256SUMS.tmp SHA256SUMS
+          cat SHA256SUMS
       - uses: actions/upload-artifact@v7
         with:
           name: dist
