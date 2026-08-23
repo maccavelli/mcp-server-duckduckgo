@@ -130,6 +130,7 @@ func (s *Store) GetUA(provider string) string {
 	// Shuffle to avoid predictable ordering.
 	shuffled := make([]string, len(pool))
 	copy(shuffled, pool)
+	//nolint:gosec // G404: non-crypto shuffle for user-agent rotation ordering
 	rand.Shuffle(len(shuffled), func(i, j int) {
 		shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
 	})
