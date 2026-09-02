@@ -100,7 +100,7 @@ jobs:
       contents: write
       id-token: write
       attestations: write
-    uses: maccavelli/mcplib/.github/workflows/publish-selfupdate-release.yml@3389f793e8fd6e697a3699fa8cb47dd50c2f951c # mcplib v1.4.0
+    uses: maccavelli/mcplib/.github/workflows/publish-selfupdate-release.yml@8d4d89ff34ff79c1ed65f223cc3d83b3ec0550aa # mcplib v1.4.1
     with:
       artifact-name: duckduckgo-release-${{ github.ref_name }}
       products-json: '["mcp-server-duckduckgo"]'
