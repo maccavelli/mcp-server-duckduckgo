@@ -9,6 +9,38 @@
 
 A high-performance Model Context Protocol (MCP) sub-server providing secure web search and media discovery via DuckDuckGo.
 
+## Keeping it up to date
+
+```bash
+mcp-server-duckduckgo update            # confirm, then install the latest release
+mcp-server-duckduckgo update --check    # report only; exit 10 if an update is available
+mcp-server-duckduckgo update --version v1.1.0   # install that exact release
+```
+
+`--check` reports only (exit `0` up to date, `10` actionable, `1` error) and
+contradicts `--yes`/`--force`. `--yes`/`-y` approves without prompting; a
+non-interactive apply without it fails rather than hanging. `--force` replaces a
+locally built binary or reinstalls the selected version, and never bypasses
+version, asset, size, integrity or target checks. `--version vX.Y.Z` installs an
+exact release; a lower tag is reported as an explicit rollback.
+
+`update` creates no cache directory or `config.yaml` and starts no datastore,
+browser, search engine, tool registry, transport or MCP server. Its output goes
+to stderr so the JSON-RPC stdout stays protocol-clean. Set `GH_TOKEN` or
+`GITHUB_TOKEN` to raise GitHub API rate limits; the token is sent only to the
+GitHub API origin.
+
+Supported platforms are `linux/amd64`, `darwin/arm64` and `windows/amd64`. A
+binary you built yourself is a local build and `update` refuses to replace it
+without `--force`. If you installed through a package manager, update through
+that manager instead — self-update does not take ownership of package-manager
+installs.
+
+Releases are immutable `vMAJOR.MINOR.PATCH` tags publishing the exact
+`mcp-server-duckduckgo-<goos>-<goarch>[.exe]` assets and one `SHA256SUMS`. A
+rebuilt fix gets a new patch tag rather than replacing a published asset
+(mcplib MADR 0005).
+
 ## 🏗️ Core Pillars: Why, What, and How
 
 ### 1. Why the Server Exists

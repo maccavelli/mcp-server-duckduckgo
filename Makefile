@@ -3,6 +3,10 @@ BINARY_NAME=mcp-server-duckduckgo
 DIST_DIR=dist
 GIT_VERSION=$(shell git describe --tags --always --dirty 2>/dev/null)
 VERSION?=$(GIT_VERSION)
+# BUILD_KIND is "release" only for a tag build; the release workflow passes it
+# explicitly. A local build stays "local" even when `git describe` resembles a
+# tag, so self-update refuses to replace it without --force (MADR 0005).
+BUILD_KIND?=local
 # Prefer the user's Go toolchain install (go install ...), then PATH.
 GOPATH_BIN     := $(shell go env GOPATH)/bin
 GOLANGCI_LINT  ?= $(GOPATH_BIN)/golangci-lint
@@ -14,21 +18,21 @@ all: help build-all
 
 build: ## Compiles the Go application for the local OS/Arch
 	@mkdir -p $(DIST_DIR)
-	@CGO_ENABLED=0 go build -trimpath -tags netgo -ldflags "-extldflags '-static' -s -w -X main.RawVersion=$(VERSION)" -o $(DIST_DIR)/$(BINARY_NAME)-$(shell go env GOOS)-$(shell go env GOARCH)$(if $(filter windows,$(shell go env GOOS)),.exe,) ./cmd/$(BINARY_NAME)
+	@CGO_ENABLED=0 go build -trimpath -tags netgo -ldflags "-extldflags '-static' -s -w -X main.RawVersion=$(VERSION) -X main.RawBuildKind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-$(shell go env GOOS)-$(shell go env GOARCH)$(if $(filter windows,$(shell go env GOOS)),.exe,) ./cmd/$(BINARY_NAME)
 
 build-all: linux darwin-arm64 windows-amd64 ## Compiles for multiple platforms
 
 linux: ## Compiles for Linux AMD64
 	@mkdir -p $(DIST_DIR)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -tags netgo -ldflags "-extldflags '-static' -s -w -X main.RawVersion=$(VERSION)" -o $(DIST_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/$(BINARY_NAME)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -tags netgo -ldflags "-extldflags '-static' -s -w -X main.RawVersion=$(VERSION) -X main.RawBuildKind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/$(BINARY_NAME)
 
 darwin-arm64: ## Compiles for macOS ARM64
 	@mkdir -p $(DIST_DIR)
-	GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.RawVersion=$(VERSION)" -o $(DIST_DIR)/$(BINARY_NAME)-darwin-arm64 ./cmd/$(BINARY_NAME)
+	GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.RawVersion=$(VERSION) -X main.RawBuildKind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-darwin-arm64 ./cmd/$(BINARY_NAME)
 
 windows-amd64: ## Compiles for Windows AMD64
 	@mkdir -p $(DIST_DIR)
-	GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.RawVersion=$(VERSION)" -o $(DIST_DIR)/$(BINARY_NAME)-windows-amd64.exe ./cmd/$(BINARY_NAME)
+	GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.RawVersion=$(VERSION) -X main.RawBuildKind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-windows-amd64.exe ./cmd/$(BINARY_NAME)
 
 clean: ## Removes all build artifacts
 	rm -rf $(DIST_DIR)

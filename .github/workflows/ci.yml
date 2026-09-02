@@ -9,8 +9,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
       - run: go mod download
@@ -24,14 +24,24 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # full history so `git describe --tags` stamps the version correctly
           fetch-depth: 0
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - run: make build-all
+      # A tag build stamps the immutable tag itself and marks the binaries as
+      # release builds; anything else stays a local build that self-update
+      # refuses to replace without --force (MADR 0005).
+      - name: Build release binaries
+        run: |
+          set -euo pipefail
+          if [ "${{ github.ref_type }}" = tag ]; then
+            make build-all VERSION="${{ github.ref_name }}" BUILD_KIND=release
+          else
+            make build-all
+          fi
       - name: Checksum build artifacts
         working-directory: dist
         run: |
@@ -51,22 +61,49 @@ jobs:
           sha256sum "$@" > SHA256SUMS.tmp
           mv SHA256SUMS.tmp SHA256SUMS
           cat SHA256SUMS
-      - uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}
-          path: dist/
+      - name: Verify the stamped identity
+        if: github.ref_type == 'tag'
+        run: |
+          set -euo pipefail
+          want="${GITHUB_REF_NAME#v}"
+          got="$(./dist/${{ github.event.repository.name }}-linux-amd64 --version 2>&1 | awk '{print $NF}')"
+          test "$got" = "$want" || {
+            echo "error: linux-amd64 reports '$got', expected '$want'" >&2
+            exit 1
+          }
+          echo "ok: linux-amd64 reports $got"
 
+      - name: Stage the canonical release
+        run: |
+          set -euo pipefail
+          mkdir -p staging
+          cp -f dist/* staging/
+          ls -lh staging/
+          cat staging/SHA256SUMS
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: duckduckgo-release-${{ github.ref_name }}
+          path: staging/
+          if-no-files-found: error
+
+  # Publish through mcplib's reusable workflow: it validates the staged file set
+  # against the canonical contract, assembles a draft, attests it, publishes it
+  # once, and waits for immutability. softprops/action-gh-release published
+  # whatever matched dist/* under a floating major tag, with no validation and
+  # no immutability (MADR 0005).
   release:
+    name: Publish self-update release
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
     permissions:
       contents: write
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: ${{ github.event.repository.name }}
-          path: dist
-      - uses: softprops/action-gh-release@v3
-        with:
-          files: dist/*
+      id-token: write
+      attestations: write
+    uses: maccavelli/mcplib/.github/workflows/publish-selfupdate-release.yml@3389f793e8fd6e697a3699fa8cb47dd50c2f951c # mcplib v1.4.0
+    with:
+      artifact-name: duckduckgo-release-${{ github.ref_name }}
+      products-json: '["mcp-server-duckduckgo"]'
+      platforms-json: '[{"os":"linux","arch":"amd64"},{"os":"darwin","arch":"arm64"},{"os":"windows","arch":"amd64"}]'
+      extra-assets-json: '[]'
+      bridge-release: false

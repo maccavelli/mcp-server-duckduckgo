@@ -12,7 +12,12 @@ require (
 	github.com/tidwall/buntdb v1.3.2
 	golang.org/x/net v0.56.0
 	golang.org/x/sync v0.22.0
-	golang.org/x/sys v0.46.0
+	golang.org/x/sys v0.47.0
+)
+
+require (
+	golang.org/x/mod v0.40.0 // indirect
+	golang.org/x/term v0.44.0 // indirect
 )
 
 require (
@@ -26,7 +31,7 @@ require (
 	github.com/google/jsonschema-go v0.4.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/maccavelli/mcp-buntdb v0.2.0
-	github.com/maccavelli/mcplib v1.2.0
+	github.com/maccavelli/mcplib v1.4.0
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
