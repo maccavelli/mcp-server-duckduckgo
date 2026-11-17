@@ -1,5 +1,5 @@
 ---
-status: complete
+status: implemented
 date: 2026-11-17
 associated-madr: "0002-MADR-pin-go-1.27.4.md"
 ---
@@ -28,6 +28,16 @@ Out of scope:
 * Re-running [0001-PLAN-retarget-book-search-open-library.md](0001-PLAN-retarget-book-search-open-library.md)
 * `make test`, `go test ./...`, `-race`, or fuzz. Those are heavy runs and this plan does not name a fleet host for them. The book-search packages were already tested on this same `go1.27.4`.
 * Commit and push. HEAD is `main`. End the phase with a dirty tree.
+
+## Grounding Reference
+
+The version pair, and the reasons for omitting a `toolchain` line, are in [0002-MADR-pin-go-1.27.4.md](0002-MADR-pin-go-1.27.4.md). Phase 1 runs on the session host that already reports Go 1.27.4, as Implementation Steps states. Commit `cd66ef28` is the pair this plan copies.
+
+## Prerequisites
+
+* The session host's `go` is 1.27.4 and `GOTOOLCHAIN` is `go1.27.4`.
+* Open Library edits already in the tree are pre-existing and are not this phase's diff.
+* `make build-all` is three `go build` invocations and stays on the session host.
 
 ## Implementation Steps
 
@@ -100,7 +110,7 @@ The plan says to stop when the `go.mod` diff contains a line other than the `go`
 
 `Makefile` line 1 is `MOD_VERSION := 1.27.4`. `go.mod` begins:
 
-```
+```text
 module github.com/maccavelli/mcp-server-duckduckgo
 
 go 1.27.4
@@ -110,10 +120,26 @@ No `toolchain` line. `git diff --exit-code -- go.sum` exited 0. `go env GOVERSIO
 
 `make build-all` exited 0. The recipes stamped `RawVersion=v1.1.0-dirty` and `RawBuildKind=local` because the working tree is dirty. `go version -m` exited 0 for each binary. First lines:
 
-```
+```text
 dist/mcp-server-duckduckgo-darwin-arm64: go1.27.4
 dist/mcp-server-duckduckgo-linux-amd64: go1.27.4
 dist/mcp-server-duckduckgo-windows-amd64.exe: go1.27.4
 ```
 
 The linux and windows binaries were not executed. No commit.
+
+### 2026-11-17 — record profile
+
+Frontmatter `status` is `implemented`. `check_records.py` rejects `complete`. `## Grounding Reference`, `## Prerequisites`, `## Rollback`, and `## Completion Criteria` were added for the strict record profile. The two fences above are tagged `text`. The phase text and the earlier execution notes are unchanged.
+
+## Rollback
+
+The steps are under Rollout and Rollback. Restore `go 1.26.6` and `MOD_VERSION := 1.26.6`, then rebuild `dist/` if the binaries should match that floor.
+
+## Completion Criteria
+
+* `go.mod` says `go 1.27.4` and has no `toolchain` line.
+* `Makefile` line 1 is `MOD_VERSION := 1.27.4`.
+* `go.sum` is unchanged.
+* `go version -m` on each `dist/` binary reports `go1.27.4`.
+* Frontmatter `status` is `implemented`.

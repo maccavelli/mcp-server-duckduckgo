@@ -1,6 +1,6 @@
 ---
-status: complete
-date: 2026-11-16
+status: implemented
+date: 2026-11-17
 associated-madr: "0001-MADR-retarget-book-search-open-library.md"
 ---
 # Implement Open Library book search
@@ -27,6 +27,16 @@ Out of scope:
 * Fetching Open Library cover bytes or edition sub-objects (`editions` field)
 * Full-module `go test ./...` unless a later phase names `run-on-host` / `run-heavy`
 
+## Grounding Reference
+
+The endpoint, field list, User-Agent, work-key rule, and the 2026-11-16 probe are recorded in [0001-MADR-retarget-book-search-open-library.md](0001-MADR-retarget-book-search-open-library.md). Implementation Steps follow that contract. `number_of_pages_median` is a JSON number, so the client decodes it as `float64`.
+
+## Prerequisites
+
+* `SearchEngine.BookSearch` and the `search_books` tool already exist.
+* The session host can run `go test` on `./internal/engine` and `./internal/handler/search`.
+* No Anna's Archive membership key is available to this client.
+
 ## Implementation Steps
 
 ### Phase 1 — Engine: Open Library JSON client
@@ -38,7 +48,7 @@ Out of scope:
    * `q` = trimmed query. `limit` = `maxResults` clamped to `[1, 50]`; if `maxResults <= 0`, use 5. The handler also turns non-positive `max_results` into 5 before this method. The server default is 100 and `limit=1000` returned 1,000 docs, so the upper clamp is a client bound. `limit=0` is a legal server value that returns `docs: []` while `numFound` stays non-zero; never send it.
    * `fields` = `key,title,subtitle,author_name,first_publish_year,number_of_pages_median,cover_i,edition_count` as one comma-separated value (`parse_comma_separated_list` in `openlibrary/fastapi/models.py`). Do not send `isbn`, `publisher`, `language`, `editions`, `availability`, or `*`.
    * `Accept: application/json`
-   * `User-Agent`: `mcp-server-duckduckgo (+https://github.com/maccavelli/mcp-server-duckduckgo)`. If `OPENLIBRARY_CONTACT` is non-empty after trim, append it inside the parenthesis, separated by `; `. Do not read `main.RawVersion` and do not invent an email.
+   * `User-Agent`: `mcp-server-duckduckgo (+https://github.com/maccavelli/mcp-server-duckduckgo)`. If `OPENLIBRARY_CONTACT` is non-empty after trim, append it inside the parenthesis, separated by `;` and a space. Do not read `main.RawVersion` and do not invent an email.
    * Decode with `json.NewDecoder(io.LimitReader(resp.Body, config.MaxBodyBytes))` into a struct that has `docs` only. Ignore envelope counts. `number_of_pages_median` is `float64` (a fractional JSON number into `int` fails the whole document on go 1.27.4). `cover_i`, `edition_count`, and `first_publish_year` are `int`.
    * Non-200, `isJSONEndpointServingHTML`, or decode error: return a wrapped error that names Open Library and the status or cause. Do not retry on 429. An unknown `fields` name is HTTP 200 with empty doc objects, not 422; those docs fail the title/key check below.
    * No doc survives mapping: `fmt.Errorf("book search returned no results")`.
@@ -46,7 +56,7 @@ Out of scope:
 2. Map each doc. Skip it when `title` is empty or the key is not a work key.
 
    * Work URL: `https://openlibrary.org` + key when the key starts with `/works/`. A bare key matching `OL` + digits + `W` becomes `https://openlibrary.org/works/` + key. Any other key is skipped. `https://openlibrary.org/OL30906747W` is a proven 404; `https://openlibrary.org/works/OL30906747W` is a proven 200.
-   * `Title`: `title`, then `: ` + `subtitle` when subtitle is non-empty.
+   * `Title`: `title`, then `:` and a space, then `subtitle` when subtitle is non-empty.
    * `Author`: `author_name` joined with `", "`.
    * `Publisher`: empty. The first of 113 publishers on `/works/OL27448W` was `Hör Verlag, München`.
    * `Date`: `first_publish_year` as a decimal string when non-zero.
@@ -122,7 +132,7 @@ Before execution. The contract probe and `go1.27.4` unmarshal check are in the M
 
 `TestFailFirstTruncatedJSON` fed `{"docs":[` to the Anna's Archive `BookSearch` and required `unexpected end of JSON input`.
 
-```
+```text
 --- FAIL: TestFailFirstTruncatedJSON (0.01s)
     books_failfirst_test.go:26: gate not met, got: book search returned no results from any mirror
 FAIL
@@ -145,10 +155,10 @@ The old scraper parsed that body as HTML, found no cards, and reported an empty 
 
 `gofmt -l` on the four edited Go files printed nothing. `golint` on `books.go` and `books_test.go` printed nothing. `golint` on `tools.go` and `models.go` reports only comments and names that were already there.
 
-```
-ok  	github.com/maccavelli/mcp-server-duckduckgo/internal/engine	0.777s
-ok  	github.com/maccavelli/mcp-server-duckduckgo/internal/engine	12.546s
-ok  	github.com/maccavelli/mcp-server-duckduckgo/internal/handler/search	0.179s
+```text
+ok github.com/maccavelli/mcp-server-duckduckgo/internal/engine 0.777s
+ok github.com/maccavelli/mcp-server-duckduckgo/internal/engine 12.546s
+ok github.com/maccavelli/mcp-server-duckduckgo/internal/handler/search 0.179s
 ```
 
 The 0.777s run is `go test ./internal/engine -run TestBookSearch`. The 12.546s run is the whole engine package on this host (other tests retry DuckDuckGo while offline). No `run-on-host`.
@@ -156,3 +166,17 @@ The 0.777s run is `go test ./internal/engine -run TestBookSearch`. The 12.546s r
 Live check, not in CI: `GET https://openlibrary.org/search.json?q=python+programming&limit=1` with the plan field list returned HTTP 200, `application/json`, 369 bytes, one doc, key `/works/OL30906747W`, title `Core Python Programming`.
 
 `internal/engine/books.go` was re-read in full. URL, field list, User-Agent, limit clamp, and mapping match this plan.
+
+### 2026-11-17 — record profile
+
+Frontmatter `status` is `implemented`. `check_records.py` rejects `complete`. `## Grounding Reference`, `## Prerequisites`, `## Rollback`, and `## Completion Criteria` were added for the strict record profile. The phase text and the 2026-11-16 notes above are unchanged. The fail-first fence and the `go test` fence are tagged `text`. The `go test` lines no longer contain tab characters. Two code spans no longer end with a space: the User-Agent separator, and the title/subtitle separator.
+
+## Rollback
+
+The steps are under Rollout and Rollback. Restoring the engine and handler commit brings back the Anna's Archive scraper. That scraper returns 403 from this environment, so roll back only for a worse Open Library regression.
+
+## Completion Criteria
+
+* Every bullet under Verification is met.
+* The fail-first truncated-JSON run failed on a scratch copy before the new assertion landed, and that output is under Execution record.
+* Frontmatter `status` is `implemented`.

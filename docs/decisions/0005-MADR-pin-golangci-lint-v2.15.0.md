@@ -65,7 +65,7 @@ Which linter release does CI install?
 
 Chosen option: "Install `golangci-lint` v2.15.0 and clear the three findings that release reports", because that is the current release whose typechecker can read Go 1.27.4 export data, and the three findings are what that binary reports on this tree.
 
-### Consequences
+## Consequences
 
 * Good, because the typecheck error that failed runs 44120982374 and 44088246731 is absent under v2.15.0.
 * Good, because `.golangci.yml` can stay as it is. `exhaustive` is off, and `revive` already lists its rules.

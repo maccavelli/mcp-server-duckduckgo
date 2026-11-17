@@ -52,7 +52,7 @@ Which pins move?
 
 Chosen option: "Raise every direct pin that has a newer stable release, and let `go get -u ./...` raise the indirect pins those builds select", because the owner asked for as many current pins as possible, and the nine direct upgrades above are the ones the proxy lists. `mcp-buntdb` is requested explicitly at v1.0.1 because `-u` will not cross v0 to v1.
 
-### Consequences
+## Consequences
 
 * Good, because `goquery`, `buntdb`, `x/net`, `x/sync`, and `x/sys` move inside the major this code already imports.
 * Good, because `mcplib` v1.6.0 and `go-sdk` v1.8.0 still export the symbols the call sites use.

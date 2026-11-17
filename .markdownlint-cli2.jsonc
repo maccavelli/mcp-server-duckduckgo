@@ -4,10 +4,18 @@
   // blocks, inline code spans, fenced shell snippets, and selective inline
   // HTML (e.g. <details>/<summary>, <br>, <kbd>) are all first-class.
   //
-  // Scope: applies to READMEs and other non-agent-optimized reference docs.
-  // MADR (Markdown Architectural Decision Records) and plan files are
-  // EXCLUDED — they follow different conventions optimized for agent
-  // consumption and would produce false-positive lint failures here.
+  // Two audiences, one run.
+  //   - Human documents (READMEs, guides, reports, AGENTS.md, harness
+  //     pointers) use the "config" block below.
+  //   - MADRs and PLANs (NNNN-MADR-*.md, NNNN-PLAN-*.md) are read and
+  //     executed by agents. They use the record profile in "overrides" at the
+  //     bottom, with combine "replace". That profile checks that the raw
+  //     source is unambiguous and that each kind's required sections exist,
+  //     not human style.
+  //
+  // The legacy override's "filter" is this file's ONE per-repository delta.
+  // Everything else is copied byte for byte from the workspace-scaffolding
+  // template. Decision: dotfiles docs/decisions/0004-MADR-agent-record-lint-profile.md.
   //
   // Rules that produce noise in long-form technical docs are disabled.
   // Style rules are pinned so the docs lint clean across the whole fleet.
@@ -91,16 +99,13 @@
 
   // Glob patterns.
   //
-  // INCLUDE: all markdown files by default.
-  // EXCLUDE:
-  //   1. Build / dependency / VCS trees (node_modules, vendor, dist, .git).
-  //   2. Agent-optimized docs:
-  //        - MADR / ADR files (case-insensitive: MADR-*.md, NNNN-MADR-*.md, etc.)
-  //        - Plan files (PLAN-*.md, plan.md, *-plan-*.md, etc., case-insensitive)
-  //        - `plans/` directories (case-insensitive: docs/plans/, Plans/, etc.)
-  //
-  // To also exclude other agent-targeted files (AGENTS.md, CLAUDE.md,
-  // TODO.md, ROADMAP.md), uncomment the additional patterns below.
+  // INCLUDE: all markdown files, records included (records get their own
+  // profile through "overrides" below, not an exclusion).
+  // EXCLUDE: build / dependency / VCS trees, vendored skills, `plans/`
+  // directories written by other tools, git-ignored paths ("gitignore"), and
+  // any directory whose name starts with `_`. check_records.py skips the same
+  // two sets, so both gates see one repository.
+  "gitignore": true,
   "globs": [
     "**/*.md",
 
@@ -109,30 +114,93 @@
     "!**/vendor/**",
     "!**/dist/**",
     "!**/.git/**",
+    // pytest writes a README.md into its cache, so a lint run after the test
+    // suite would otherwise fail on a generated, gitignored file.
+    "!**/.pytest_cache/**",
+    // Agent skills vendored into a repository are byte copies of the fleet
+    // originals: they are linted (or not) where they are authored, not here.
+    "!**/.agents/skills/**",
+    "!**/.claude/skills/**",
 
-    // MADR (Markdown Architectural Decision Records) — case-insensitive.
-    // Matches: MADR-foo.md, NNNN-MADR-foo.md, madr-foo.md, foo-madr.md, etc.
-    "!**/MADR*.md",
-    "!**/*MADR*.md",
-    "!**/madr*.md",
-    "!**/*madr*.md",
-
-    // Plan files — case-insensitive.
-    // Matches: PLAN-foo.md, plan.md, foo-plan.md, foo-action-plan.md,
-    //          2026-04-03-foo-impl-plan.md, foo-PLAN.md, etc.
-    "!**/PLAN*.md",
-    "!**/*PLAN*.md",
-    "!**/*[Pp]lan*.md",
-
-    // Plans directories — case-insensitive.
-    // Matches: docs/plans/, docs/Plans/, top-level plans/, etc.
+    // Plans directories written by other tools: docs/plans/, Plans/, etc.
     "!**/plans/**",
-    "!**/Plans/**"
+    "!**/Plans/**",
 
-    // Optional additional agent-targeted exclusions (uncomment as needed):
-    // , "!**/AGENTS.md"
-    // , "!**/CLAUDE.md"
-    // , "!**/TODO.md"
-    // , "!**/ROADMAP.md"
+    // An underscore prefix marks a tree that is deprecated or moved elsewhere
+    // and kept as a fallback until it is deleted.
+    "!**/_*/**"
+  ],
+
+  // Record profile. The first override whose filter matches a file wins, and
+  // "replace" discards the human "config" block above for that file.
+  //
+  // Every record rule protects the raw source an agent reads:
+  //   - MD043: the kind's required sections exist, in order.
+  //   - MD029: source step numbers are sequential.
+  //   - MD040: a command is distinguishable from observed output.
+  //   - MD055/MD056: a table row says the same thing in source and rendered.
+  //   - MD025: one title.
+  //   - MD037-MD039: a literal in backticks, emphasis or link text is the literal.
+  //   - MD010: indentation inside commands is what it appears to be.
+  //   - The rest: headings parse as headings, anchors are unique, and links
+  //     and fences are well formed.
+  // Style rules (MD004, MD013, MD022, MD031, MD032, MD036, ...) stay off.
+  "overrides": [
+    {
+      // LEGACY: records that predate this profile. PER-REPOSITORY DELTA.
+      // List the record numbers that existed at adoption, e.g.
+      //   "**/00[0-4][0-9]-{MADR,PLAN}-*.md". Greenfield: leave it empty.
+      // Same profile minus MD043, MD040, MD029, MD038 and MD010.
+      "filter": [],
+      "combine": "replace",
+      "config": {
+        "default": false,
+        "MD001": true, "MD003": { "style": "atx" }, "MD011": true,
+        "MD018": true, "MD019": true, "MD020": true, "MD021": true, "MD023": true,
+        "MD024": { "siblings_only": true }, "MD025": { "front_matter_title": "" },
+        "MD037": true, "MD039": true, "MD042": true,
+        "MD046": { "style": "fenced" }, "MD047": true, "MD048": { "style": "backtick" },
+        "MD051": true, "MD052": true, "MD053": true, "MD055": true, "MD056": true
+      }
+    },
+    {
+      // MADR: Context and Problem Statement, Decision Drivers, Considered
+      // Options, Decision Outcome, Consequences. All H2, in this order, with
+      // other headings allowed between and after them.
+      "filter": ["**/[0-9][0-9][0-9][0-9]-MADR-*.md"],
+      "combine": "replace",
+      "config": {
+        "default": false,
+        "MD001": true, "MD003": { "style": "atx" }, "MD010": true, "MD011": true,
+        "MD018": true, "MD019": true, "MD020": true, "MD021": true, "MD023": true,
+        "MD024": { "siblings_only": true }, "MD025": { "front_matter_title": "" },
+        "MD029": { "style": "ordered" }, "MD037": true, "MD038": true, "MD039": true,
+        "MD040": true, "MD042": true,
+        "MD043": { "headings": ["?", "*", "## Context and Problem Statement", "*",
+                                "## Decision Drivers", "*", "## Considered Options", "*",
+                                "## Decision Outcome", "*", "## Consequences", "*"] },
+        "MD046": { "style": "fenced" }, "MD047": true, "MD048": { "style": "backtick" },
+        "MD051": true, "MD052": true, "MD053": true, "MD055": true, "MD056": true
+      }
+    },
+    {
+      // PLAN: Grounding Reference, Prerequisites, at least one stage heading,
+      // Rollback, Completion Criteria. All H2, in this order.
+      "filter": ["**/[0-9][0-9][0-9][0-9]-PLAN-*.md"],
+      "combine": "replace",
+      "config": {
+        "default": false,
+        "MD001": true, "MD003": { "style": "atx" }, "MD010": true, "MD011": true,
+        "MD018": true, "MD019": true, "MD020": true, "MD021": true, "MD023": true,
+        "MD024": { "siblings_only": true }, "MD025": { "front_matter_title": "" },
+        "MD029": { "style": "ordered" }, "MD037": true, "MD038": true, "MD039": true,
+        "MD040": true, "MD042": true,
+        "MD043": { "headings": ["?", "*", "## Grounding Reference", "*",
+                                "## Prerequisites", "+", "## Rollback", "*",
+                                "## Completion Criteria", "*"] },
+        "MD046": { "style": "fenced" }, "MD047": true, "MD048": { "style": "backtick" },
+        "MD051": true, "MD052": true, "MD053": true, "MD055": true, "MD056": true
+      }
+    }
   ]
 }

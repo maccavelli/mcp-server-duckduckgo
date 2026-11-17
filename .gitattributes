@@ -1,0 +1,27 @@
+# Keep every text file LF in the working tree on ALL platforms.
+#
+# Without this, a Windows checkout with core.autocrlf=true (the GitHub runner
+# default) rewrites LF to CRLF on the way out of git. That silently breaks:
+#
+#   * byte-exact fixtures, such as golden files under testdata/;
+#   * anything a POSIX shell executes, where a CR becomes part of the last
+#     argument on every line.
+#
+# eol=lf is deliberate rather than `text=auto` alone: auto would still hand
+# Windows CRLF. Nothing in this repository needs CRLF.
+* text=auto eol=lf
+
+# Binary files must never be touched by EOL conversion.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary

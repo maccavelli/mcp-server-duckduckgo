@@ -44,7 +44,7 @@ Which files should record Go 1.27.4, and what should the rebuild compile?
 
 Chosen option: "Set `go 1.27.4` in go.mod and `MOD_VERSION` to 1.27.4, then rebuild `dist/`", because that is the pair commit `cd66ef28` already uses, `go 1.27.4` is the implied toolchain `go1.27.4`, and both CI jobs install the `go` directive exactly while `check-latest` stays false. The session host's `GOTOOLCHAIN=go1.27.4` then builds that tree.
 
-### Consequences
+## Consequences
 
 * Good, because CI follows `go.mod` without a second copy of the version in `ci.yml`.
 * Good, because `go get go@1.27.4` is the toolchain document's update command, and an equal toolchain line stays omitted.

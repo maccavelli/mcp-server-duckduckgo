@@ -9,6 +9,8 @@
 
 A high-performance Model Context Protocol (MCP) sub-server providing secure web search and media discovery via DuckDuckGo.
 
+Decision records and the architecture note are indexed in [docs/README.md](docs/README.md).
+
 ## Keeping it up to date
 
 ```bash
@@ -44,16 +46,20 @@ rebuilt fix gets a new patch tag rather than replacing a published asset
 ## 🏗️ Core Pillars: Why, What, and How
 
 ### 1. Why the Server Exists
+
 AI models suffer from training cutoff limits and lack real-time visibility into the public web, documentation updates, and breaking news. Commercial search APIs often require complex api-key signups, implement severe rate limits, and track queries. `mcp-server-duckduckgo` exists to give AI agents a zero-configuration, privacy-preserving gateway to retrieve live web context, documentation, and media assets using DuckDuckGo.
 
 ### 2. What the Server Does
+
 The DuckDuckGo sub-server enables search and web scraping workflows:
+
 - **Web & News Search**: Searches active websites and current news feeds.
 - **Media Discovery**: Finds related images and videos.
 - **Direct Web Scraping**: Fetches webpage content and dynamically converts it into clean, readable Markdown for prompt injection.
 - **Search Suggestions**: Retrieves search query autocompletion suggestions.
 
 ### 3. How it Does What it Does
+
 - **HTML Parsing & Extraction**: Queries DuckDuckGo HTML endpoints directly, parsing results concurrently with Go's `net/http` client.
 - **Jit Web Reader**: The `read_url` tool fetches remote HTML pages, strips script/style tags, and structures the content as Markdown.
 - **Telemetry Logging**: Writes process lifecycle logs to a high-fidelity ring buffer and routes standard error streams safely to the orchestrator.

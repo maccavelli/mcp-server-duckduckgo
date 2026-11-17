@@ -12,7 +12,20 @@ GOPATH_BIN     := $(shell go env GOPATH)/bin
 GOLANGCI_LINT  ?= $(GOPATH_BIN)/golangci-lint
 FLEET_LINT_CFG := .golangci.yml
 
-.PHONY: all build clean test run install version build-all linux darwin-arm64 windows-amd64 help fmt vet lint vendor
+# Recipes need bash (for pipefail) and grep, diff, cp and mv. On Windows
+# that is Git's bash, and Git's usr/bin goes on PATH because Git bash does
+# not put its coreutils there when make starts it from PowerShell. Set
+# GIT_BASH if Git is installed elsewhere. Every other host uses /bin/bash.
+ifeq ($(OS),Windows_NT)
+  GIT_BASH ?= C:/PROGRA~1/Git/usr/bin/bash.exe
+  SHELL := $(GIT_BASH)
+  export PATH := $(dir $(GIT_BASH)):$(PATH)
+else
+  SHELL := /bin/bash
+endif
+.SHELLFLAGS := -eu -o pipefail -c
+
+.PHONY: all build clean test run install version build-all linux darwin-arm64 windows-amd64 help fmt vet lint vendor check-records markdownlint
 
 all: help build-all
 
@@ -79,3 +92,9 @@ help: ## Displays this help message
 	@echo ""
 	@echo "Targets:"
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+check-records: ## Validate record names, pairing, frontmatter, and doc links
+	python3 scripts/check_records.py --check-all
+
+markdownlint: ## Lint Markdown with the fleet record profile
+	npx --yes markdownlint-cli2@0.23.2

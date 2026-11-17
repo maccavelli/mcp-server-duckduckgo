@@ -14,3 +14,7 @@ coverage_summary.txt
 .worktrees/
 tmp/
 temp/
+
+# Python (scripts/check_records.py)
+__pycache__/
+*.py[cod]

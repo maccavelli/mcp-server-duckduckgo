@@ -41,7 +41,7 @@ Chosen option: "Open Library Search API (`GET https://openlibrary.org/search.jso
 
 Google Books from the same host returned HTTP 429 with `quota_limit_value: "0"` on the anonymous default project. OpenAlex and Crossref answered quickly but returned conference papers and book-chapters, not a book catalog. Anna's Archive search remains 403 for this client.
 
-### Consequences
+## Consequences
 
 * Good, because `search_books` uses the documented public JSON Search API instead of HTML. Open Library's usage guidelines instruct clients to use API endpoints and not scrape HTML pages.
 * Good, because restricting `fields` is the documented performance contract after the 2025-01-21 default-field reduction. The client asks for `number_of_pages_median` (absent from the OpenAPI default list) and does not ask for `isbn` or `publisher`: those work-level fields are edition bags, and a five-hit "lord of the rings" response was 38,206 bytes with them and 1,803 bytes without.

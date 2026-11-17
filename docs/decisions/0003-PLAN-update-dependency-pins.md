@@ -1,5 +1,5 @@
 ---
-status: complete
+status: implemented
 date: 2026-11-17
 associated-madr: "0003-MADR-update-dependency-pins.md"
 ---
@@ -26,6 +26,15 @@ Out of scope:
 * GitHub Actions SHAs
 * `go test ./...` (heavy; this plan does not name a fleet host)
 * Commit and push
+
+## Grounding Reference
+
+The nine direct modules and the stable versions this plan pins are the table in [0003-MADR-update-dependency-pins.md](0003-MADR-update-dependency-pins.md). `go get -u ./...` may move other selected modules. Pre-releases are out of scope. `github.com/ysmood/fetchup` later stayed at v0.3.0, and the playwright module path moved under [0004-MADR-move-playwright-to-maintained-module.md](0004-MADR-move-playwright-to-maintained-module.md).
+
+## Prerequisites
+
+* [0002-PLAN-pin-go-1.27.4.md](0002-PLAN-pin-go-1.27.4.md) has already set `go 1.27.4`. This plan stops if that line changes.
+* The session host can run `go get`, `go build ./...`, and the compile-only `go test -count=1 -run '^$'` commands named under Verification.
 
 ## Implementation Steps
 
@@ -96,3 +105,18 @@ Direct results:
 | `spf13/viper` | v1.21.0, already current |
 
 `go build ./...` exited 0 after the fetchup pin. `go test -count=1 -run '^$'` exited 0 for `./internal/store`, `./internal/handler/search`, `./internal/handler/media`, `./internal/handler/system`, `./internal/util`, and `./cmd/mcp-server-duckduckgo`. No commit.
+
+### 2026-11-17 — record profile
+
+Frontmatter `status` is `implemented`. `check_records.py` rejects `complete`. `## Grounding Reference`, `## Prerequisites`, `## Rollback`, and `## Completion Criteria` were added for the strict record profile. The phase text and the pin notes above are unchanged.
+
+## Rollback
+
+The steps are under Rollout and Rollback. Restore the previous `go.mod` and `go.sum` for any module this phase moved.
+
+## Completion Criteria
+
+* `go list -m` shows the versions in the execution-record table, including fetchup at v0.3.0 and community playwright-go at v0.6000.0.
+* `go.mod` still says `go 1.27.4` and has no `toolchain` line.
+* `go build ./...` exited 0, and the compile-only package tests exited 0.
+* Frontmatter `status` is `implemented`.

@@ -1,5 +1,5 @@
 ---
-status: complete
+status: implemented
 date: 2026-11-17
 associated-madr: "0004-MADR-move-playwright-to-maintained-module.md"
 ---
@@ -32,6 +32,16 @@ Out of scope:
 * Commit and push
 * Running `playwright.Install()` or downloading browsers in this phase
 
+## Grounding Reference
+
+[0004-MADR-move-playwright-to-maintained-module.md](0004-MADR-move-playwright-to-maintained-module.md) requires `github.com/mxschmitt/playwright-go` v0.6401.0. That tag's `go.mod` declares the mxschmitt module path. [0003-PLAN-update-dependency-pins.md](0003-PLAN-update-dependency-pins.md) left the community module at v0.6000.0 because `go get` of v0.6401.0 on the community path failed.
+
+## Prerequisites
+
+* The pin update from 0003 is already in the tree. Leave it in place.
+* `github.com/ysmood/fetchup` is v0.3.0. If `go list -m` shows another version, pin v0.3.0 again.
+* `go 1.27.4` stays. This phase does not run `playwright.Install()`.
+
 ## Implementation Steps
 
 ### Phase 1 — Switch the module
@@ -41,10 +51,10 @@ From the repository root, on the session host:
 1. Replace the import `github.com/playwright-community/playwright-go` in `internal/engine/playwright.go` with `github.com/mxschmitt/playwright-go`.
 2. Run:
 
-```bash
-go get github.com/mxschmitt/playwright-go@v0.6401.0
-go mod tidy
-```
+   ```bash
+   go get github.com/mxschmitt/playwright-go@v0.6401.0
+   go mod tidy
+   ```
 
 3. If `go list -m github.com/ysmood/fetchup` is anything other than v0.3.0, run `go get github.com/ysmood/fetchup@v0.3.0` and `go mod tidy` again.
 4. `gofmt` `internal/engine/playwright.go`.
@@ -83,3 +93,19 @@ The import in `internal/engine/playwright.go` is `github.com/mxschmitt/playwrigh
 `go list -m all` also prints `go.yaml.in/yaml/v4 v4.0.0-rc.2`. No package in `go list -deps ./...` imports it. It is a requirement inside `mcplib` v1.6.0's `go.mod`, and it is absent from this module's `go.mod` and `go.sum`. That mcplib pin did not change in this phase.
 
 `go build ./...` exited 0. `go test -count=1 -run '^$'` exited 0 for `./internal/engine`, `./internal/store`, `./internal/handler/search`, `./internal/handler/media`, `./internal/handler/system`, `./internal/util`, and `./cmd/mcp-server-duckduckgo`. Each line was `ok` and `[no tests to run]`. No commit.
+
+### 2026-11-17 — record profile
+
+Frontmatter `status` is `implemented`. `check_records.py` rejects `complete`. `## Grounding Reference`, `## Prerequisites`, `## Rollback`, and `## Completion Criteria` were added for the strict record profile. The `go get` fence is indented under step 2 so the ordered list stays 1 through 4. The phase text and the module-switch notes above are unchanged.
+
+## Rollback
+
+The steps are under Rollout and Rollback. Restore the community import and the `go.mod` and `go.sum` saved at the start of the phase. A machine that already downloaded the 1.64.1 driver keeps that cache. Rolling back the module pin does not delete it.
+
+## Completion Criteria
+
+* `go list -m github.com/mxschmitt/playwright-go` prints v0.6401.0.
+* The community module is no longer required. `github.com/ysmood/fetchup` is v0.3.0.
+* `go.mod` still says `go 1.27.4` and has no `toolchain` line.
+* `go build ./...` and the compile-only package tests exited 0.
+* Frontmatter `status` is `implemented`.

@@ -42,7 +42,7 @@ Which module path does this server require?
 
 Chosen option: "Require `github.com/mxschmitt/playwright-go` at v0.6401.0 and change the one import", because that is the maintained module, it is the newest tag, and the community pin cannot fetch its driver zip.
 
-### Consequences
+## Consequences
 
 * Good, because `go get` can resolve v0.6401.0 on the path the tag declares.
 * Good, because `Install()` fetches driver 1.64.1 from the npm registry, which answered HTTP 200.
