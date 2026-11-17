@@ -12,6 +12,8 @@ Records for this repository. The numbering sequence is repository-wide.
 | [0003](decisions/0003-PLAN-update-dependency-pins.md) | PLAN | Implement the dependency pin update |
 | [0004](decisions/0004-MADR-move-playwright-to-maintained-module.md) | MADR | Move playwright-go onto the maintained module path |
 | [0004](decisions/0004-PLAN-move-playwright-to-maintained-module.md) | PLAN | Implement the playwright module-path move |
+| [0005](decisions/0005-MADR-pin-golangci-lint-v2.15.0.md) | MADR | Pin golangci-lint to v2.15.0 so CI can read Go 1.27.4 export data |
+| [0005](decisions/0005-PLAN-pin-golangci-lint-v2.15.0.md) | PLAN | Implement the golangci-lint v2.15.0 pin |
 
 ## I want to…
 
@@ -25,3 +27,5 @@ Records for this repository. The numbering sequence is repository-wide.
 | update the module pins | [0003-PLAN](decisions/0003-PLAN-update-dependency-pins.md) |
 | know why playwright-go uses the mxschmitt module | [0004-MADR](decisions/0004-MADR-move-playwright-to-maintained-module.md) |
 | move playwright-go to the maintained module | [0004-PLAN](decisions/0004-PLAN-move-playwright-to-maintained-module.md) |
+| know why CI lint fails on Go 1.27.4 | [0005-MADR](decisions/0005-MADR-pin-golangci-lint-v2.15.0.md) |
+| pin golangci-lint so CI can typecheck | [0005-PLAN](decisions/0005-PLAN-pin-golangci-lint-v2.15.0.md) |

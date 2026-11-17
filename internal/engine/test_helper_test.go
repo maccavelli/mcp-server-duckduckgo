@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -17,7 +16,3 @@ func (m *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 func newMockClient(roundTrip func(*http.Request) (*http.Response, error)) *http.Client {
 	return &http.Client{Transport: &mockTransport{roundTrip}}
 }
-
-type errorReader struct{}
-
-func (e *errorReader) Read(p []byte) (n int, err error) { return 0, fmt.Errorf("read error") }

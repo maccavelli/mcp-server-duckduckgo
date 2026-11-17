@@ -25,7 +25,7 @@ const (
 
 // olBareWorkKey matches a work id with no /works/ prefix. Author search emits
 // that shape; /search.json emits /works/OL…W. A bare id is not a valid URL.
-var olBareWorkKey = regexp.MustCompile(`^OL[0-9]+W$`)
+var olBareWorkKey = regexp.MustCompile(`^OL\d+W$`)
 
 type olWorkDoc struct {
 	Key              string   `json:"key"`
