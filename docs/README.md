@@ -18,6 +18,8 @@ Records for this repository. The numbering sequence is repository-wide.
 | [0006](decisions/0006-PLAN-scaffold-agent-workspace.md) | PLAN | Implement the fleet agent workspace |
 | [0007](decisions/0007-MADR-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) | MADR | Declare `go 1.26.11` as the floor and `toolchain go1.27.4` as the build toolchain |
 | [0007](decisions/0007-PLAN-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) | PLAN | Implement `go 1.26.11` as the floor and `toolchain go1.27.4` |
+| [0008](decisions/0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md) | MADR | Adopt go-selfupdate-lib v1.26.3 inside the existing update command |
+| [0008](decisions/0008-PLAN-adopt-go-selfupdate-lib-v1.26.3.md) | PLAN | Implement go-selfupdate-lib v1.26.3 inside the existing update command |
 
 ## I want to…
 
@@ -38,3 +40,5 @@ Records for this repository. The numbering sequence is repository-wide.
 | know why the agent workspace is in this repo | [0006-MADR](decisions/0006-MADR-scaffold-agent-workspace.md) |
 | install the agent workspace | [0006-PLAN](decisions/0006-PLAN-scaffold-agent-workspace.md) |
 | move the floor and toolchain pins | [0007-PLAN](decisions/0007-PLAN-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) |
+| know why `update` should call go-selfupdate-lib v1.26.3 | [0008-MADR](decisions/0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md) |
+| adopt go-selfupdate-lib v1.26.3 for the update command | [0008-PLAN](decisions/0008-PLAN-adopt-go-selfupdate-lib-v1.26.3.md) |
