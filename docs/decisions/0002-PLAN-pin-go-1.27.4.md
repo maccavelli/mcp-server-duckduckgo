@@ -143,3 +143,7 @@ The steps are under Rollout and Rollback. Restore `go 1.26.6` and `MOD_VERSION :
 * `go.sum` is unchanged.
 * `go version -m` on each `dist/` binary reports `go1.27.4`.
 * Frontmatter `status` is `implemented`.
+
+## Amendment 2026-11-17 (second)
+
+The `go` line this plan set to 1.27.4 became `go 1.26.11`, with `toolchain go1.27.4`, under [0007-PLAN-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md](0007-PLAN-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md). The steps and the execution record above are history and are unchanged.

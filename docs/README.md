@@ -16,6 +16,8 @@ Records for this repository. The numbering sequence is repository-wide.
 | [0005](decisions/0005-PLAN-pin-golangci-lint-v2.15.0.md) | PLAN | Implement the golangci-lint v2.15.0 pin |
 | [0006](decisions/0006-MADR-scaffold-agent-workspace.md) | MADR | Install the fleet agent workspace |
 | [0006](decisions/0006-PLAN-scaffold-agent-workspace.md) | PLAN | Implement the fleet agent workspace |
+| [0007](decisions/0007-MADR-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) | MADR | Declare `go 1.26.11` as the floor and `toolchain go1.27.4` as the build toolchain |
+| [0007](decisions/0007-PLAN-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) | PLAN | Implement `go 1.26.11` as the floor and `toolchain go1.27.4` |
 
 ## I want to…
 
@@ -24,7 +26,8 @@ Records for this repository. The numbering sequence is repository-wide.
 | understand how this repository is put together | [architecture.md](architecture.md) |
 | know why `search_books` left Anna's Archive | [0001-MADR](decisions/0001-MADR-retarget-book-search-open-library.md) |
 | implement or verify the Open Library retarget | [0001-PLAN](decisions/0001-PLAN-retarget-book-search-open-library.md) |
-| know why the module requires Go 1.27.4 | [0002-MADR](decisions/0002-MADR-pin-go-1.27.4.md) |
+| know why the module declares `go 1.26.11` with `toolchain go1.27.4` | [0007-MADR](decisions/0007-MADR-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) |
+| read the earlier decision that set the floor to Go 1.27.4 (history) | [0002-MADR](decisions/0002-MADR-pin-go-1.27.4.md) |
 | pin Go 1.27.4 and rebuild `dist/` | [0002-PLAN](decisions/0002-PLAN-pin-go-1.27.4.md) |
 | know which dependency pins moved | [0003-MADR](decisions/0003-MADR-update-dependency-pins.md) |
 | update the module pins | [0003-PLAN](decisions/0003-PLAN-update-dependency-pins.md) |
@@ -34,3 +37,4 @@ Records for this repository. The numbering sequence is repository-wide.
 | pin golangci-lint so CI can typecheck | [0005-PLAN](decisions/0005-PLAN-pin-golangci-lint-v2.15.0.md) |
 | know why the agent workspace is in this repo | [0006-MADR](decisions/0006-MADR-scaffold-agent-workspace.md) |
 | install the agent workspace | [0006-PLAN](decisions/0006-PLAN-scaffold-agent-workspace.md) |
+| move the floor and toolchain pins | [0007-PLAN](decisions/0007-PLAN-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) |

@@ -100,3 +100,7 @@ Implementation plan: [0002-PLAN-pin-go-1.27.4.md](0002-PLAN-pin-go-1.27.4.md).
 `go get go@1.27.4` also regrouped `require` blocks. Versions, `// indirect` marks, and `go.sum` stayed the same. The owner kept that layout. The decision is still `go 1.27.4` plus `MOD_VERSION := 1.27.4`, with no `toolchain` line.
 
 The book-search work stays as accepted in [0001-MADR-retarget-book-search-open-library.md](0001-MADR-retarget-book-search-open-library.md). This record does not commit either change. HEAD is `main`. A commit needs a later explicit request that names `main`, or a named `feature/…` branch.
+
+### Amendment 2026-11-17 (second)
+
+The owner's instruction of 2026-11-17 supersedes this record's outcome for the `go` line and for the absence of a `toolchain` line. The floor is now `go 1.26.11` and `go.mod` carries `toolchain go1.27.4`, under [0007-MADR-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md](0007-MADR-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md). This record's reasoning above is left as written; it chose `go 1.27.4` for no Go 1.27 feature, so lowering the floor loses none of its reasons.
