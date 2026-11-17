@@ -1,6 +1,8 @@
 module github.com/maccavelli/mcp-server-duckduckgo
 
-go 1.27.4
+go 1.26.11
+
+toolchain go1.27.4
 
 require (
 	github.com/PuerkitoBio/goquery v1.14.0

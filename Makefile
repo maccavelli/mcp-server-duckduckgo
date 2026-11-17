@@ -1,4 +1,4 @@
-MOD_VERSION := 1.27.4
+MOD_VERSION := 1.26.11
 BINARY_NAME=mcp-server-duckduckgo
 DIST_DIR=dist
 GIT_VERSION=$(shell git describe --tags --always --dirty 2>/dev/null)
