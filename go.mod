@@ -1,10 +1,12 @@
 module github.com/maccavelli/mcp-server-duckduckgo
 
-go 1.26.6
+go 1.27.4
 
 require (
 	github.com/PuerkitoBio/goquery v1.11.0
 	github.com/go-rod/stealth v0.4.9
+	github.com/maccavelli/mcp-buntdb v0.2.0
+	github.com/maccavelli/mcplib v1.4.1
 	github.com/modelcontextprotocol/go-sdk v1.6.1
 	github.com/playwright-community/playwright-go v0.5700.1
 	github.com/spf13/cobra v1.10.2
@@ -13,11 +15,6 @@ require (
 	golang.org/x/net v0.56.0
 	golang.org/x/sync v0.22.0
 	golang.org/x/sys v0.47.0
-)
-
-require (
-	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/term v0.44.0 // indirect
 )
 
 require (
@@ -30,8 +27,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/maccavelli/mcp-buntdb v0.2.0
-	github.com/maccavelli/mcplib v1.4.1
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
@@ -56,6 +51,8 @@ require (
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.8.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
+	golang.org/x/term v0.44.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 )

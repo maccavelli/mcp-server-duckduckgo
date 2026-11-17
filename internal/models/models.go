@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// SearchResult represents a single search result from DuckDuckGo or mirrors.
+// SearchResult represents a single search result.
 type SearchResult struct {
 	Title       string `json:"title"`
 	URL         string `json:"url"`
@@ -39,6 +39,7 @@ type SearchResponse struct {
 	} `json:"data"`
 }
 
+// ToMarkdown renders the search response as Markdown.
 func (r SearchResponse) ToMarkdown() string {
 	var res strings.Builder
 	fmt.Fprintf(&res, "# %s Search Results for '%s'\n\n", r.Data.Type, r.Data.Metadata.Query)
@@ -67,6 +68,7 @@ type SearchResponse20 struct {
 	} `json:"data"`
 }
 
+// ToMarkdown renders the media response as Markdown.
 func (r SearchResponse20) ToMarkdown() string {
 	var res strings.Builder
 	fmt.Fprintf(&res, "# %s Media Results for '%s'\n\n", r.Data.Metadata.SearchType, r.Data.Metadata.Query)

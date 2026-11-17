@@ -10,24 +10,24 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-type mockSearchEngine struct{}
+type mockEngine struct{}
 
-func (m *mockSearchEngine) WebSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error) {
+func (m *mockEngine) WebSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error) {
 	return []models.SearchResult{{URL: "http://example.com", Title: "Web Result"}}, nil
 }
-func (m *mockSearchEngine) NewsSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error) {
+func (m *mockEngine) NewsSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error) {
 	return []models.SearchResult{{Title: "News Result"}}, nil
 }
-func (m *mockSearchEngine) BookSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error) {
+func (m *mockEngine) BookSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error) {
 	return []models.SearchResult{{Title: "Book Result"}}, nil
 }
-func (m *mockSearchEngine) FetchContent(ctx context.Context, rawURL string) (*engine.FetchedContent, error) {
+func (m *mockEngine) FetchContent(ctx context.Context, rawURL string) (*engine.FetchedContent, error) {
 	return &engine.FetchedContent{URL: rawURL, Title: "Mock Page", Content: "Mock content"}, nil
 }
 
-func TestSearchTool_Handle(t *testing.T) {
-	eng := &mockSearchEngine{}
-	tool := &SearchTool{
+func TestTool_Handle(t *testing.T) {
+	eng := &mockEngine{}
+	tool := &Tool{
 		Engine:     eng,
 		Type:       "web",
 		SearchFunc: eng.WebSearch,
@@ -35,7 +35,7 @@ func TestSearchTool_Handle(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	input := SearchInput{
+	input := Input{
 		Query:      "test query",
 		MaxResults: 1,
 	}
@@ -56,16 +56,16 @@ func TestSearchTool_Handle(t *testing.T) {
 }
 
 func TestRegister(t *testing.T) {
-	eng := &mockSearchEngine{}
+	eng := &mockEngine{}
 	Register(eng)
 
 	srv := mcp.NewServer(&mcp.Implementation{Name: "test", Version: "1.0"}, &mcp.ServerOptions{})
-	tool := &SearchTool{Engine: eng, Type: "web"}
+	tool := &Tool{Engine: eng, Type: "web"}
 	tool.Register(srv)
 }
 
 func TestFetchResultContents(t *testing.T) {
-	eng := &mockSearchEngine{}
+	eng := &mockEngine{}
 	results := []models.SearchResult{
 		{URL: "http://example.com/1"},
 		{URL: "http://example.com/2"},
@@ -80,15 +80,15 @@ func TestFetchResultContents(t *testing.T) {
 	}
 }
 
-func TestSearchTool_Handle_FetchContent(t *testing.T) {
-	eng := &mockSearchEngine{}
-	tool := &SearchTool{
+func TestTool_Handle_FetchContent(t *testing.T) {
+	eng := &mockEngine{}
+	tool := &Tool{
 		Engine:     eng,
 		Type:       searchTypeWeb,
 		SearchFunc: eng.WebSearch,
 	}
 	ctx := context.Background()
-	_, raw, err := tool.Handle(ctx, nil, SearchInput{
+	_, raw, err := tool.Handle(ctx, nil, Input{
 		Query:        "test",
 		FetchContent: true,
 		Format:       "json",
@@ -106,7 +106,7 @@ func TestSearchTool_Handle_FetchContent(t *testing.T) {
 }
 
 func TestFetchURLTool(t *testing.T) {
-	eng := &mockSearchEngine{}
+	eng := &mockEngine{}
 	tool := &FetchURLTool{Engine: eng}
 	if tool.Name() != "fetch_url" {
 		t.Errorf("unexpected name: %s", tool.Name())
