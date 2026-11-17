@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-rod/stealth"
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 var pwInstallOnce sync.Once
