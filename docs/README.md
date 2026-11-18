@@ -20,29 +20,27 @@ Records for this repository. The numbering sequence is repository-wide.
 | [0007](decisions/0007-PLAN-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) | PLAN | Implement `go 1.26.11` as the floor and `toolchain go1.27.4` |
 | [0008](decisions/0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md) | MADR | Adopt go-selfupdate-lib v1.26.3 for the update command and the release workflow |
 | [0008](decisions/0008-PLAN-adopt-go-selfupdate-lib-v1.26.3.md) | PLAN | Implement go-selfupdate-lib v1.26.3 for the update command and the release workflow |
+| [0009](decisions/0009-MADR-reorganize-the-documentation-tree.md) | MADR | Reorganize the documentation into a short README and a guide library |
+| [0009](decisions/0009-PLAN-reorganize-the-documentation-tree.md) | PLAN | Implement the short README and the guide library |
 
 ## I want to…
 
 | I want to… | Start here |
 | :--- | :--- |
+| install the binary | [Installing](guides/installing.md) |
+| update an installed binary | [Updating](guides/updating.md) |
+| connect a client | [Connecting a client](guides/connecting-a-client.md) |
+| call a tool | [MCP tools](guides/mcp-tools.md) |
+| set the cache and environment | [Configuration](guides/configuration.md) |
+| build and test | [Developing](guides/developing.md) |
+| cut a release | [Releasing](guides/releasing.md) |
 | understand how this repository is put together | [architecture.md](architecture.md) |
-| know why `search_books` left Anna's Archive | [0001-MADR](decisions/0001-MADR-retarget-book-search-open-library.md) |
-| implement or verify the Open Library retarget | [0001-PLAN](decisions/0001-PLAN-retarget-book-search-open-library.md) |
-| know why the module declares `go 1.26.11` with `toolchain go1.27.4` | [0007-MADR](decisions/0007-MADR-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) |
-| read the earlier decision that set the floor to Go 1.27.4 (history) | [0002-MADR](decisions/0002-MADR-pin-go-1.27.4.md) |
-| pin Go 1.27.4 and rebuild `dist/` | [0002-PLAN](decisions/0002-PLAN-pin-go-1.27.4.md) |
-| know which dependency pins moved | [0003-MADR](decisions/0003-MADR-update-dependency-pins.md) |
-| update the module pins | [0003-PLAN](decisions/0003-PLAN-update-dependency-pins.md) |
+| know why `search_books` uses Open Library | [0001-MADR](decisions/0001-MADR-retarget-book-search-open-library.md) |
+| know why an earlier record pinned the module to Go 1.27.4 | [0002-MADR](decisions/0002-MADR-pin-go-1.27.4.md) |
+| know which dependency pins were updated | [0003-MADR](decisions/0003-MADR-update-dependency-pins.md) |
 | know why playwright-go uses the mxschmitt module | [0004-MADR](decisions/0004-MADR-move-playwright-to-maintained-module.md) |
-| move playwright-go to the maintained module | [0004-PLAN](decisions/0004-PLAN-move-playwright-to-maintained-module.md) |
-| know why CI lint fails on Go 1.27.4 | [0005-MADR](decisions/0005-MADR-pin-golangci-lint-v2.15.0.md) |
-| pin golangci-lint so CI can typecheck | [0005-PLAN](decisions/0005-PLAN-pin-golangci-lint-v2.15.0.md) |
-| know why the agent workspace is in this repo | [0006-MADR](decisions/0006-MADR-scaffold-agent-workspace.md) |
-| install the agent workspace | [0006-PLAN](decisions/0006-PLAN-scaffold-agent-workspace.md) |
-| move the floor and toolchain pins | [0007-PLAN](decisions/0007-PLAN-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) |
-| know why `update` and the release workflow should call go-selfupdate-lib v1.26.3 | [0008-MADR](decisions/0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md) |
-| know why a release ships `install.sh` and `install.ps1` | [0008-MADR](decisions/0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md) |
-| know why the release does not add `windows/arm64` | [0008-MADR](decisions/0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md) |
-| know why disclosure and verify come from go-shared | [0008-MADR](decisions/0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md) |
-| know why `verify` runs govulncheck | [0008-MADR](decisions/0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md) |
-| adopt go-selfupdate-lib v1.26.3 for the update command and the release workflow | [0008-PLAN](decisions/0008-PLAN-adopt-go-selfupdate-lib-v1.26.3.md) |
+| know why CI installs golangci-lint v2.15.0 | [0005-MADR](decisions/0005-MADR-pin-golangci-lint-v2.15.0.md) |
+| know why the agent workspace is in this repository | [0006-MADR](decisions/0006-MADR-scaffold-agent-workspace.md) |
+| know why the module declares `go 1.26.11` and `toolchain go1.27.4` | [0007-MADR](decisions/0007-MADR-move-toolchain-to-go-1-27-4-and-floor-to-1-26-11.md) |
+| know why `update` and releases use go-selfupdate-lib v1.26.3 | [0008-MADR](decisions/0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md) |
+| know why the root README is short and the procedures live in guides | [0009-MADR](decisions/0009-MADR-reorganize-the-documentation-tree.md) |

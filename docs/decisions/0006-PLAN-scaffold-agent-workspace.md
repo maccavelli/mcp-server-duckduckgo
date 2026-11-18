@@ -32,7 +32,9 @@ Templates are the copies under the installed `workspace-scaffolding` skill, dire
 MagicDuck is the MCP sub-server for DuckDuckGo web, news, image, and video search, plus Open Library book search and a page-fetch fallback. What exists today is docs/architecture.md. The decision index is docs/README.md.
 ```
 
-`{{DEPENDENCIES}}` and `{{PREADD}}` are the template defaults. There is no `make preflight`. `{{WHAT_IT_IS}}` states the same product as fact: the `cmd/mcp-server-duckduckgo` binary, search and fetch in `internal/`, and one docs tree. `{{WHAT_IS_NOT_HERE}}` states that the operator cache and config live outside the repository, and that this public tree is a published export of a private source. No "we used to".
+`{{DEPENDENCIES}}` and `{{PREADD}}` are the template defaults. There is no `make preflight`. `{{WHAT_IT_IS}}` states the same product as fact: the `cmd/mcp-server-duckduckgo` binary, search and fetch in `internal/`, and one docs tree. `{{WHAT_IS_NOT_HERE}}` states that the operator cache and config live outside the repository, ~~and that this public tree is a published export of a private source~~. No "we used to".
+
+Amended 2026-11-18: the owner stated this repository is the source of truth. That export clause is withdrawn. The withdrawal is recorded in [0009-MADR-reorganize-the-documentation-tree.md](0009-MADR-reorganize-the-documentation-tree.md).
 
 The legacy filter is exactly:
 
