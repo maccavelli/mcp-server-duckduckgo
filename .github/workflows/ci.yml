@@ -14,96 +14,49 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go mod download
-      - run: go test ./...
-      - run: go vet ./...
+      - name: Fetch go-shared
+        env:
+          GO_SHARED_SHA: 3e92bdae9c3e8fd6c662f891e803a1135ca8b513
+        run: |
+          set -euo pipefail
+          dest="${{ runner.temp }}/go-shared"
+          rm -rf "${dest}"
+          git init "${dest}"
+          git -C "${dest}" remote add origin https://github.com/maccavelli/go-shared.git
+          git -C "${dest}" fetch --depth 1 origin "${GO_SHARED_SHA}"
+          git -C "${dest}" checkout --detach FETCH_HEAD
+          test "$(git -C "${dest}" rev-parse HEAD)" = "${GO_SHARED_SHA}"
       - run: |
           go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
-          GOLANGCI_LINT="$(go env GOPATH)/bin/golangci-lint" make lint
+          GOLANGCI_LINT="$(go env GOPATH)/bin/golangci-lint" make verify GO_SHARED="${{ runner.temp }}/go-shared"
 
+  # Build and stage from selfupdate-release.json. A tag stamps the tag as
+  # kind release. Any other ref rehearses, and the release job is skipped.
+  # The called workflow generates install.sh and install.ps1 (0008).
   build:
+    name: Build release
     needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          # full history so `git describe --tags` stamps the version correctly
-          fetch-depth: 0
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-      # A tag build stamps the immutable tag itself and marks the binaries as
-      # release builds; anything else stays a local build that self-update
-      # refuses to replace without --force (MADR 0005).
-      - name: Build release binaries
-        run: |
-          set -euo pipefail
-          if [ "${{ github.ref_type }}" = tag ]; then
-            make build-all VERSION="${{ github.ref_name }}" BUILD_KIND=release
-          else
-            make build-all
-          fi
-      - name: Checksum build artifacts
-        working-directory: dist
-        run: |
-          # Drop stale manifests before globbing so a re-run (or a restored
-          # cache) can never hash a previous run's output. The file list is
-          # frozen into the positional parameters BEFORE any redirect exists,
-          # otherwise the shell would create SHA256SUMS.tmp first and the glob
-          # would pick it up. Glob order is already sorted, so the manifest is
-          # deterministic without GNU-only find/sort extensions.
-          rm -f SHA256SUMS SHA256SUMS.tmp
-          set --
-          for f in *; do
-            [ -f "$f" ] || continue
-            set -- "$@" "$f"
-          done
-          [ "$#" -gt 0 ] || { echo "no build artifacts to checksum" >&2; exit 1; }
-          sha256sum "$@" > SHA256SUMS.tmp
-          mv SHA256SUMS.tmp SHA256SUMS
-          cat SHA256SUMS
-      - name: Verify the stamped identity
-        if: github.ref_type == 'tag'
-        run: |
-          set -euo pipefail
-          want="${GITHUB_REF_NAME#v}"
-          got="$(./dist/${{ github.event.repository.name }}-linux-amd64 --version 2>&1 | awk '{print $NF}')"
-          test "$got" = "$want" || {
-            echo "error: linux-amd64 reports '$got', expected '$want'" >&2
-            exit 1
-          }
-          echo "ok: linux-amd64 reports $got"
+    permissions:
+      contents: read
+    uses: maccavelli/go-selfupdate-lib/.github/workflows/build-selfupdate-release.yml@1dffdc9dee24a7534513dc51c9039408be37c09b # v1.26.3
+    with:
+      spec-path: selfupdate-release.json
 
-      - name: Stage the canonical release
-        run: |
-          set -euo pipefail
-          mkdir -p staging
-          cp -f dist/* staging/
-          ls -lh staging/
-          cat staging/SHA256SUMS
-
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: duckduckgo-release-${{ github.ref_name }}
-          path: staging/
-          if-no-files-found: error
-
-  # Publish through mcplib's reusable workflow: it validates the staged file set
-  # against the canonical contract, assembles a draft, attests it, publishes it
-  # once, and waits for immutability. softprops/action-gh-release published
-  # whatever matched dist/* under a floating major tag, with no validation and
-  # no immutability (MADR 0005).
+  # Publish the staged artifact. extra-assets-json carries install.sh and
+  # install.ps1. The job that replaced softprops/action-gh-release still
+  # validates, attests, and publishes once (MADR 0005, 0008).
   release:
     name: Publish self-update release
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: needs.build.outputs.rehearsal == 'false'
     permissions:
       contents: write
       id-token: write
       attestations: write
-    uses: maccavelli/mcplib/.github/workflows/publish-selfupdate-release.yml@8d4d89ff34ff79c1ed65f223cc3d83b3ec0550aa # mcplib v1.4.1
+    uses: maccavelli/go-selfupdate-lib/.github/workflows/publish-selfupdate-release.yml@1dffdc9dee24a7534513dc51c9039408be37c09b # v1.26.3
     with:
-      artifact-name: duckduckgo-release-${{ github.ref_name }}
-      products-json: '["mcp-server-duckduckgo"]'
-      platforms-json: '[{"os":"linux","arch":"amd64"},{"os":"darwin","arch":"arm64"},{"os":"windows","arch":"amd64"}]'
-      extra-assets-json: '[]'
-      bridge-release: false
+      artifact-name: ${{ needs.build.outputs.artifact-name }}
+      products-json: ${{ needs.build.outputs.products-json }}
+      platforms-json: ${{ needs.build.outputs.platforms-json }}
+      extra-assets-json: ${{ needs.build.outputs.extra-assets-json }}
+      prerelease-channels-json: ${{ needs.build.outputs.prerelease-channels-json }}

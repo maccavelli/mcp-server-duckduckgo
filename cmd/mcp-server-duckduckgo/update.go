@@ -3,12 +3,12 @@ package main
 
 import (
 	"context"
-	"io"
-	"net/http"
+	"errors"
 	"os"
-	"time"
 
-	"github.com/maccavelli/mcplib/selfupdate"
+	"github.com/maccavelli/go-selfupdate-lib/buildinfo"
+	"github.com/maccavelli/go-selfupdate-lib/selfupdate"
+	"github.com/maccavelli/go-selfupdate-lib/selfupdate/cli"
 	"github.com/spf13/cobra"
 )
 
@@ -20,9 +20,6 @@ const skipConfigAnnotation = "selfupdate.skip-config"
 
 // skipConfigValue is the only annotation value that opts a command out.
 const skipConfigValue = "true"
-
-// releaseBuildKind is the only stamped value that marks a release build.
-const releaseBuildKind = "release"
 
 // updateRepository and updatePlatforms are this product's frozen release
 // identity and matrix. A platform outside the set is rejected before any
@@ -36,20 +33,19 @@ var (
 	}
 )
 
-// updateOperationTimeout bounds one whole update.
-const updateOperationTimeout = 15 * time.Minute
+// newUpdateUpdater is the construction seam. Tests replace it so the CLI
+// matrix makes no live GitHub call.
+var newUpdateUpdater = defaultNewUpdateUpdater
 
-// newUpdater is the construction seam; tests replace it so the CLI matrix
-// makes no live GitHub call.
-var newUpdater = defaultUpdater
+// updateOptions builds the streams for one run. Tests call it directly.
+var updateOptions = commandUpdateOptions
 
-func defaultUpdater(errw io.Writer) (*selfupdate.Updater, error) {
-	limits := selfupdate.DefaultLimits()
-	source, err := selfupdate.NewGitHubSource(selfupdate.GitHubOptions{
+func defaultNewUpdateUpdater() (*selfupdate.Updater, error) {
+	src, err := selfupdate.NewGitHubSource(selfupdate.GitHubOptions{
 		Repository: updateRepository,
-		Client:     &http.Client{Timeout: updateOperationTimeout},
-		UserAgent:  updateRepository.Name + "/" + RawVersion,
-		Limits:     limits,
+		Client:     selfupdate.DefaultHTTPClient(),
+		UserAgent:  selfupdate.UserAgent(updateRepository.Name, buildinfo.Identity().Current()),
+		Limits:     selfupdate.DefaultLimits(),
 	})
 	if err != nil {
 		return nil, err
@@ -58,41 +54,45 @@ func defaultUpdater(errw io.Writer) (*selfupdate.Updater, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Standalone only.
 	installer, err := selfupdate.NewStandaloneInstaller(selfupdate.InstallOptions{})
 	if err != nil {
 		return nil, err
 	}
 	return selfupdate.New(selfupdate.Config{
-		Source:    source,
+		Source:    src,
 		Versions:  selfupdate.NewStrictVersionPolicy(),
 		Assets:    selector,
 		Installer: installer,
-		Reporter:  selfupdate.NewTextReporter(errw),
-		Confirmer: selfupdate.NewTerminalConfirmer(os.Stdin, errw),
-		Limits:    limits,
+		Reporter:  selfupdate.DiscardReporter(),
+		Confirmer: selfupdate.NonInteractiveConfirmer(),
+		Limits:    selfupdate.DefaultLimits(),
 	})
 }
 
-// buildKind maps the linker stamp. Only the exact string "release" counts; a
-// bool cannot be set with -X, so anything else is a local build.
-func buildKind() selfupdate.BuildKind {
-	if RawBuildKind == releaseBuildKind {
-		return selfupdate.ReleaseBuild
+func commandUpdateOptions(cmd *cobra.Command, asJSON bool) (cli.Options, error) {
+	in := cmd.InOrStdin()
+	o := cli.Options{Stderr: cmd.ErrOrStderr(), Stdin: in, JSON: asJSON}
+	if in == os.Stdin {
+		o.Interactive = cli.StdioOptions().Interactive
 	}
-	return selfupdate.LocalBuild
+	if asJSON {
+		if protocolStdout == nil {
+			return cli.Options{}, errors.New("update --json: protocol stdout is not preserved")
+		}
+		o.Stdout = protocolStdout
+	}
+	return o, nil
 }
 
 func newUpdateCmd() *cobra.Command {
-	var (
-		check, yes, force bool
-		targetVersion     string
-	)
+	var flags cli.Flags
 	cmd := &cobra.Command{
-		Use:         "update",
-		Args:        cobra.NoArgs,
-		Annotations: map[string]string{skipConfigAnnotation: skipConfigValue},
-		Short:       "Download and install a GitHub release for " + updateRepository.Name,
+		Use:           "update",
+		Args:          cobra.NoArgs,
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		Annotations:   map[string]string{skipConfigAnnotation: skipConfigValue},
+		Short:         "Download and install a GitHub release for " + updateRepository.Name,
 		Long: `Check GitHub releases, verify the release checksum, and replace this
 executable.
 
@@ -101,30 +101,27 @@ target, 1 = error. Set GH_TOKEN or GITHUB_TOKEN to raise API rate limits.
 
 This command creates no cache directory or config file and starts no datastore,
 browser, search engine, tool registry, transport or MCP server.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// Reporter and confirmation go to the command's error stream, so
-			// the protocol stdout is never written by an update.
-			updater, err := newUpdater(cmd.ErrOrStderr())
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			req, err := flags.Request(updateRepository.Name, buildinfo.Identity())
 			if err != nil {
 				return err
 			}
-			ctx, cancel := context.WithTimeout(cmd.Context(), updateOperationTimeout)
-			defer cancel()
-			_, err = updater.Run(ctx, selfupdate.Request{
-				Product:        updateRepository.Name,
-				CurrentVersion: RawVersion,
-				CurrentBuild:   buildKind(),
-				TargetVersion:  targetVersion,
-				CheckOnly:      check,
-				Force:          force,
-				Yes:            yes,
-			})
+			o, err := updateOptions(cmd, flags.JSON)
+			if err != nil {
+				return err
+			}
+			u, err := newUpdateUpdater()
+			if err != nil {
+				return err
+			}
+			ctx := cmd.Context()
+			if ctx == nil {
+				ctx = context.Background()
+			}
+			_, err = cli.Run(ctx, u, req, o)
 			return err
 		},
 	}
-	cmd.Flags().BoolVar(&check, "check", false, "report only; exit 0 up to date, 10 actionable, 1 error")
-	cmd.Flags().BoolVarP(&yes, "yes", "y", false, "approve the selected operation without prompting")
-	cmd.Flags().BoolVar(&force, "force", false, "replace a local build, or reinstall the selected version")
-	cmd.Flags().StringVar(&targetVersion, "version", "", "install this exact release tag (vX.Y.Z); a lower tag is an explicit rollback")
+	flags.Bind(cmd.Flags())
 	return cmd
 }

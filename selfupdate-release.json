@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "products": [
+    {
+      "name": "mcp-server-duckduckgo",
+      "package": "./cmd/mcp-server-duckduckgo",
+      "identity_args": ["identity"]
+    }
+  ],
+  "platforms": [
+    {"os": "linux", "arch": "amd64"},
+    {"os": "darwin", "arch": "arm64"},
+    {"os": "windows", "arch": "amd64"}
+  ],
+  "packaging": "binary",
+  "installer": {"name": "mcp-server-duckduckgo"}
+}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/maccavelli/mcplib/selfupdate"
+	"github.com/maccavelli/go-selfupdate-lib/selfupdate"
 )
 
 func main() {

@@ -7,6 +7,7 @@ toolchain go1.27.4
 require (
 	github.com/PuerkitoBio/goquery v1.14.0
 	github.com/go-rod/stealth v0.4.9
+	github.com/maccavelli/go-selfupdate-lib v1.26.3
 	github.com/maccavelli/mcp-buntdb v1.0.1
 	github.com/maccavelli/mcplib v1.6.0
 	github.com/modelcontextprotocol/go-sdk v1.8.0

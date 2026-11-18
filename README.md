@@ -134,9 +134,9 @@ If you are testing the server standalone, configure your IDE to launch the binar
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "/home/youruser/.local/bin/mcp-server-duckduckgo",
+      "command": "/home/<user>/.local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/home/youruser"
+        "HOME": "/home/<user>"
       }
     }
   }
@@ -149,9 +149,9 @@ If you are testing the server standalone, configure your IDE to launch the binar
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "C:\\Users\\YourUser\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
+      "command": "C:\\Users\\<user>\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
       "env": {
-        "USERPROFILE": "C:\\Users\\YourUser"
+        "USERPROFILE": "C:\\Users\\<user>"
       }
     }
   }
@@ -172,9 +172,9 @@ If you are testing the server standalone, configure your IDE to launch the binar
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "/home/youruser/.local/bin/mcp-server-duckduckgo",
+      "command": "/home/<user>/.local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/home/youruser"
+        "HOME": "/home/<user>"
       }
     }
   }
@@ -189,7 +189,7 @@ If you are testing the server standalone, configure your IDE to launch the binar
     "duckduckgo": {
       "command": "/usr/local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/Users/youruser"
+        "HOME": "/Users/<user>"
       }
     }
   }
@@ -202,9 +202,9 @@ If you are testing the server standalone, configure your IDE to launch the binar
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "C:\\Users\\YourUser\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
+      "command": "C:\\Users\\<user>\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
       "env": {
-        "USERPROFILE": "C:\\Users\\YourUser"
+        "USERPROFILE": "C:\\Users\\<user>"
       }
     }
   }
@@ -225,9 +225,9 @@ If you are testing the server standalone, configure your IDE to launch the binar
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "/home/youruser/.local/bin/mcp-server-duckduckgo",
+      "command": "/home/<user>/.local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/home/youruser"
+        "HOME": "/home/<user>"
       }
     }
   }
@@ -242,7 +242,7 @@ If you are testing the server standalone, configure your IDE to launch the binar
     "duckduckgo": {
       "command": "/usr/local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/Users/youruser"
+        "HOME": "/Users/<user>"
       }
     }
   }
@@ -255,9 +255,9 @@ If you are testing the server standalone, configure your IDE to launch the binar
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "C:\\Users\\YourUser\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
+      "command": "C:\\Users\\<user>\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
       "env": {
-        "USERPROFILE": "C:\\Users\\YourUser"
+        "USERPROFILE": "C:\\Users\\<user>"
       }
     }
   }
@@ -279,7 +279,7 @@ If you are testing the server standalone, configure your IDE to launch the binar
     "duckduckgo": {
       "command": "/usr/local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/Users/youruser"
+        "HOME": "/Users/<user>"
       }
     }
   }
@@ -292,9 +292,9 @@ If you are testing the server standalone, configure your IDE to launch the binar
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "C:\\Users\\YourUser\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
+      "command": "C:\\Users\\<user>\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
       "env": {
-        "USERPROFILE": "C:\\Users\\YourUser"
+        "USERPROFILE": "C:\\Users\\<user>"
       }
     }
   }
@@ -308,7 +308,7 @@ Claude Code uses a CLI command to register MCP servers.
 **Linux:**
 
 ```bash
-claude mcp add duckduckgo -s user -- /home/youruser/.local/bin/mcp-server-duckduckgo
+claude mcp add duckduckgo -s user -- /home/<user>/.local/bin/mcp-server-duckduckgo
 ```
 
 **macOS:**
@@ -320,7 +320,7 @@ claude mcp add duckduckgo -s user -- /usr/local/bin/mcp-server-duckduckgo
 **Windows (PowerShell):**
 
 ```powershell
-claude mcp add duckduckgo -s user -- "C:\Users\YourUser\AppData\Local\Programs\duckduckgo\mcp-server-duckduckgo.exe"
+claude mcp add duckduckgo -s user -- "C:\Users\<user>\AppData\Local\Programs\duckduckgo\mcp-server-duckduckgo.exe"
 ```
 
 #### Cursor
@@ -337,9 +337,9 @@ claude mcp add duckduckgo -s user -- "C:\Users\YourUser\AppData\Local\Programs\d
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "/home/youruser/.local/bin/mcp-server-duckduckgo",
+      "command": "/home/<user>/.local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/home/youruser"
+        "HOME": "/home/<user>"
       }
     }
   }
@@ -354,7 +354,7 @@ claude mcp add duckduckgo -s user -- "C:\Users\YourUser\AppData\Local\Programs\d
     "duckduckgo": {
       "command": "/usr/local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/Users/youruser"
+        "HOME": "/Users/<user>"
       }
     }
   }
@@ -367,9 +367,9 @@ claude mcp add duckduckgo -s user -- "C:\Users\YourUser\AppData\Local\Programs\d
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "C:\\Users\\YourUser\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
+      "command": "C:\\Users\\<user>\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
       "env": {
-        "USERPROFILE": "C:\\Users\\YourUser"
+        "USERPROFILE": "C:\\Users\\<user>"
       }
     }
   }
@@ -392,9 +392,9 @@ JetBrains IDEs configure MCP servers via the AI Assistant settings or a local co
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "/home/youruser/.local/bin/mcp-server-duckduckgo",
+      "command": "/home/<user>/.local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/home/youruser"
+        "HOME": "/home/<user>"
       }
     }
   }
@@ -409,7 +409,7 @@ JetBrains IDEs configure MCP servers via the AI Assistant settings or a local co
     "duckduckgo": {
       "command": "/usr/local/bin/mcp-server-duckduckgo",
       "env": {
-        "HOME": "/Users/youruser"
+        "HOME": "/Users/<user>"
       }
     }
   }
@@ -422,9 +422,9 @@ JetBrains IDEs configure MCP servers via the AI Assistant settings or a local co
 {
   "mcpServers": {
     "duckduckgo": {
-      "command": "C:\\Users\\YourUser\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
+      "command": "C:\\Users\\<user>\\AppData\\Local\\Programs\\duckduckgo\\mcp-server-duckduckgo.exe",
       "env": {
-        "USERPROFILE": "C:\\Users\\YourUser"
+        "USERPROFILE": "C:\\Users\\<user>"
       }
     }
   }

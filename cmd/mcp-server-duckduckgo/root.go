@@ -1,8 +1,11 @@
 package main
 
 import (
+	"io"
 	"os"
+	"strings"
 
+	"github.com/maccavelli/go-selfupdate-lib/buildinfo"
 	"github.com/spf13/cobra"
 
 	"github.com/maccavelli/mcp-server-duckduckgo/internal/config"
@@ -11,6 +14,10 @@ import (
 // OriginalStdout preserves the real stdout before Execute aliases it to
 // stderr, so JSON-RPC output is written deliberately rather than by accident.
 var OriginalStdout *os.File
+
+// protocolStdout is the stdout Execute saved, used when update --json must
+// write off the aliased stderr.
+var protocolStdout io.Writer
 
 // RootCmd is the command tree root. It defaults to serve when run with no
 // subcommand.
@@ -28,10 +35,11 @@ var RootCmd = &cobra.Command{
 func Execute() error {
 	// Trap os.Stdout and safely alias it to os.Stderr to protect the JSON-RPC pipe.
 	OriginalStdout = os.Stdout
+	protocolStdout = OriginalStdout
 	os.Stdout = os.Stderr
 	RootCmd.SetOut(os.Stderr)
 	RootCmd.SetErr(os.Stderr)
-	RootCmd.Version = Version
+	RootCmd.Version = strings.TrimPrefix(buildinfo.Identity().Current(), "v")
 
 	return RootCmd.Execute()
 }
@@ -53,4 +61,5 @@ func init() {
 		return nil
 	}
 	RootCmd.AddCommand(newUpdateCmd())
+	RootCmd.AddCommand(newIdentityCmd())
 }

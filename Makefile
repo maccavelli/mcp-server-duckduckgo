@@ -6,10 +6,13 @@ VERSION?=$(GIT_VERSION)
 # BUILD_KIND is "release" only for a tag build; the release workflow passes it
 # explicitly. A local build stays "local" even when `git describe` resembles a
 # tag, so self-update refuses to replace it without --force (MADR 0005).
+# The linker symbols are buildinfo.version and buildinfo.kind, and kind
+# release counts only when VERSION is a release tag.
 BUILD_KIND?=local
 # Prefer the user's Go toolchain install (go install ...), then PATH.
 GOPATH_BIN     := $(shell go env GOPATH)/bin
 GOLANGCI_LINT  ?= $(GOPATH_BIN)/golangci-lint
+GO_SHARED      ?= ../go-shared
 FLEET_LINT_CFG := .golangci.yml
 
 # Recipes need bash (for pipefail) and grep, diff, cp and mv. On Windows
@@ -25,27 +28,27 @@ else
 endif
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: all build clean test run install version build-all linux darwin-arm64 windows-amd64 help fmt vet lint vendor check-records markdownlint
+.PHONY: all build clean test run install version build-all linux darwin-arm64 windows-amd64 help fmt vet lint vendor check-records markdownlint fmt-check mod-check disclosure-check vuln verify
 
 all: help build-all
 
 build: ## Compiles the Go application for the local OS/Arch
 	@mkdir -p $(DIST_DIR)
-	@CGO_ENABLED=0 go build -trimpath -tags netgo -ldflags "-extldflags '-static' -s -w -X main.RawVersion=$(VERSION) -X main.RawBuildKind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-$(shell go env GOOS)-$(shell go env GOARCH)$(if $(filter windows,$(shell go env GOOS)),.exe,) ./cmd/$(BINARY_NAME)
+	@CGO_ENABLED=0 go build -trimpath -tags netgo -ldflags "-extldflags '-static' -s -w -X github.com/maccavelli/go-selfupdate-lib/buildinfo.version=$(VERSION) -X github.com/maccavelli/go-selfupdate-lib/buildinfo.kind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-$(shell go env GOOS)-$(shell go env GOARCH)$(if $(filter windows,$(shell go env GOOS)),.exe,) ./cmd/$(BINARY_NAME)
 
 build-all: linux darwin-arm64 windows-amd64 ## Compiles for multiple platforms
 
 linux: ## Compiles for Linux AMD64
 	@mkdir -p $(DIST_DIR)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -tags netgo -ldflags "-extldflags '-static' -s -w -X main.RawVersion=$(VERSION) -X main.RawBuildKind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/$(BINARY_NAME)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -tags netgo -ldflags "-extldflags '-static' -s -w -X github.com/maccavelli/go-selfupdate-lib/buildinfo.version=$(VERSION) -X github.com/maccavelli/go-selfupdate-lib/buildinfo.kind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/$(BINARY_NAME)
 
 darwin-arm64: ## Compiles for macOS ARM64
 	@mkdir -p $(DIST_DIR)
-	GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.RawVersion=$(VERSION) -X main.RawBuildKind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-darwin-arm64 ./cmd/$(BINARY_NAME)
+	GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "-s -w -X github.com/maccavelli/go-selfupdate-lib/buildinfo.version=$(VERSION) -X github.com/maccavelli/go-selfupdate-lib/buildinfo.kind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-darwin-arm64 ./cmd/$(BINARY_NAME)
 
 windows-amd64: ## Compiles for Windows AMD64
 	@mkdir -p $(DIST_DIR)
-	GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.RawVersion=$(VERSION) -X main.RawBuildKind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-windows-amd64.exe ./cmd/$(BINARY_NAME)
+	GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -X github.com/maccavelli/go-selfupdate-lib/buildinfo.version=$(VERSION) -X github.com/maccavelli/go-selfupdate-lib/buildinfo.kind=$(BUILD_KIND)" -o $(DIST_DIR)/$(BINARY_NAME)-windows-amd64.exe ./cmd/$(BINARY_NAME)
 
 clean: ## Removes all build artifacts
 	rm -rf $(DIST_DIR)
@@ -62,7 +65,7 @@ vet: ## Runs go vet on the project
 lint: ## Runs golangci-lint from $(go env GOPATH)/bin (override with GOLANGCI_LINT=)
 	@if [ ! -x "$(GOLANGCI_LINT)" ]; then \
 		echo "golangci-lint not found at $(GOLANGCI_LINT)"; \
-		echo "Install: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest"; \
+		echo "Install: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0"; \
 		exit 1; \
 	fi
 	$(GOLANGCI_LINT) run -c $(FLEET_LINT_CFG) ./...
@@ -98,3 +101,32 @@ check-records: ## Validate record names, pairing, frontmatter, and doc links
 
 markdownlint: ## Lint Markdown with the fleet record profile
 	npx --yes markdownlint-cli2@0.23.2
+
+fmt-check: ## Checks Go formatting without rewriting files
+	@if ! git ls-files -- '*.go' | grep -q .; then \
+	  echo "fmt-check: no tracked Go files"; \
+	  exit 1; \
+	fi; \
+	unformatted="$$(git ls-files -z -- '*.go' | xargs -0 gofmt -l)"; \
+	status=$$?; \
+	if [ "$$status" -ne 0 ]; then \
+	  echo "gofmt failed"; \
+	  exit "$$status"; \
+	fi; \
+	if [ -n "$$unformatted" ]; then \
+	  echo "gofmt found unformatted files:"; \
+	  printf '%s\n' "$$unformatted"; \
+	  exit 1; \
+	fi
+
+mod-check: ## Verifies module tidiness and downloaded module checksums
+	go mod tidy -diff
+	go mod verify
+
+disclosure-check: ## Scans tracked text for real user-home paths (go-shared 0003)
+	python3 "$(GO_SHARED)/scripts/check_disclosure.py" --repo .
+
+vuln: ## Reports reachable vulnerabilities with govulncheck v1.10.0
+	go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 ./...
+
+verify: mod-check fmt-check lint vet test vuln check-records markdownlint disclosure-check ## Runs the local and CI quality checks

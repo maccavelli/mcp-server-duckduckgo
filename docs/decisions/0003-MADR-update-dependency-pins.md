@@ -98,3 +98,9 @@ The community-path pin at v0.6000.0 is superseded by [0004-MADR-move-playwright-
 Implementation plan: [0003-PLAN-update-dependency-pins.md](0003-PLAN-update-dependency-pins.md).
 
 The Go floor stays the decision in [0002-MADR-pin-go-1.27.4.md](0002-MADR-pin-go-1.27.4.md). Replacing `mcplib/selfupdate` with `go-selfupdate-lib` is a separate decision and is not part of this pin update.
+
+### Amendment 2026-11-17 — self-update library
+
+The separate decision in the last paragraph is
+[0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md](0008-MADR-adopt-go-selfupdate-lib-v1.26.3.md).
+That paragraph stays.
