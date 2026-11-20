@@ -22,6 +22,8 @@ Records for this repository. The numbering sequence is repository-wide.
 | [0008](decisions/0008-PLAN-adopt-go-selfupdate-lib-v1.26.3.md) | PLAN | Implement go-selfupdate-lib v1.26.3 for the update command and the release workflow |
 | [0009](decisions/0009-MADR-reorganize-the-documentation-tree.md) | MADR | Reorganize the documentation into a short README and a guide library |
 | [0009](decisions/0009-PLAN-reorganize-the-documentation-tree.md) | PLAN | Implement the short README and the guide library |
+| [0010](decisions/0010-MADR-adopt-the-fleet-pre-add-wrapper.md) | MADR | Adopt the fleet pre-add wrapper: golangci-lint over staged packages |
+| [0010](decisions/0010-PLAN-adopt-the-fleet-pre-add-wrapper.md) | PLAN | Implement the fleet pre-add wrapper |
 
 ## I want to…
 

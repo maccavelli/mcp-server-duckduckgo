@@ -110,9 +110,34 @@ docs/reports/NNNN-GATES-short-slug.md
 
 ## Pre-add checks
 
-- Before staging, run the repository's pre-add command if one exists.
-- Before every commit, run `make check-records` and `make markdownlint` when those targets exist; otherwise `python3 scripts/check_records.py --check-all` and `npx --yes markdownlint-cli2@0.23.2`.
-- A file that fails is not committed.
+Before staging Go files, run:
+
+```bash
+make pre-add-check                 # every tracked Go file
+make pre-add-check FILES="a.go b.go"
+```
+
+It runs `scripts/go-precheck.sh`: `gofmt` on the files; `golangci-lint run -c
+.golangci.yml ./...` once for the host GOOS, the same command, config and GOOS
+as `make lint` (`docs/decisions/0005-MADR-pin-golangci-lint-v2.15.0.md` pins
+the version); `go vet` and `go test` on the packages the files belong to; and
+`govulncheck ./...` through the same pinned invocation as the `vuln` target.
+`GO_PRECHECK_SKIP_VULN=1` skips govulncheck offline; `GOLANGCI_LINT=<path>`
+names the golangci-lint binary, as for `make lint`.
+
+`golint` is not used: the fleet retired the per-file rule (dotfiles
+`docs/decisions/0028-MADR-retire-per-file-golint-from-the-fleet-pre-add-rule.md`),
+and this repository never ran it. This repository's `revive` ruleset is an
+explicit list (`.golangci.yml` under `revive.rules`) that does not enable
+golint's `exported`, `package-comments` or `var-naming` rules, so nothing
+here depended on them. A file that fails is not committed.
+
+The machine-wide agent gate runs the same script before every agent
+`git commit` in this repository.
+
+- Before every commit, run `make check-records` and `make markdownlint` when
+  those targets exist; otherwise `python3 scripts/check_records.py --check-all`
+  and `npx --yes markdownlint-cli2@0.23.2`. A file that fails is not committed.
 
 ## Identifiers
 

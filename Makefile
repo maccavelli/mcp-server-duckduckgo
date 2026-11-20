@@ -28,7 +28,7 @@ else
 endif
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: all build clean test run install version build-all linux darwin-arm64 windows-amd64 help fmt vet lint vendor check-records markdownlint fmt-check mod-check disclosure-check vuln verify
+.PHONY: all build clean test run install version build-all linux darwin-arm64 windows-amd64 help fmt vet lint vendor check-records markdownlint fmt-check mod-check disclosure-check vuln verify pre-add-check
 
 all: help build-all
 
@@ -130,3 +130,6 @@ vuln: ## Reports reachable vulnerabilities with govulncheck v1.10.0
 	go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 ./...
 
 verify: mod-check fmt-check lint vet test vuln check-records markdownlint disclosure-check ## Runs the local and CI quality checks
+
+pre-add-check: ## Runs the pre-add checks (gofmt, golangci-lint, vet, test, govulncheck) on staged FILES=...
+	@bash scripts/go-precheck.sh $(FILES)
