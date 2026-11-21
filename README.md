@@ -3,7 +3,7 @@
 This repository is the source of truth for `mcp-server-duckduckgo`.
 
 `mcp-server-duckduckgo` is a stdio MCP server for web, news, image, and video search,
-Open Library book lookup, and page fetch. The current release is `v1.2.0`.
+Open Library book lookup, and page fetch. The current release is `v1.3.0`.
 Published platforms are `linux/amd64`, `darwin/arm64`, and `windows/amd64`.
 
 Decision records, the architecture note, and the guides are indexed in [docs/README.md](docs/README.md).
