@@ -29,6 +29,9 @@ const (
 type Store struct {
 	db     *buntdb.DB
 	cancel context.CancelFunc
+	// dbPath is the path Close releases the advisory lock for. It is
+	// ":memory:" for the in-memory fallback, which ReleaseDBLock refuses.
+	dbPath string
 }
 
 // Open initialises the BuntDB store at the given directory path. If the
@@ -60,7 +63,7 @@ func Open(dataDir string) (*Store, error) {
 	// STD-MCP-CONTEXT-DETACHMENT-001: Background shrink goroutine uses a
 	// detached context so it is NOT tied to any request lifecycle.
 	ctx, cancel := context.WithCancel(context.Background())
-	s := &Store{db: db, cancel: cancel}
+	s := &Store{db: db, cancel: cancel, dbPath: dbPath}
 	go s.shrinkLoop(ctx)
 	return s, nil
 }
@@ -74,16 +77,21 @@ func openInMemory() (*Store, error) {
 	}
 	slog.Warn("operating in in-memory mode — scraping state will not persist across restarts")
 	ctx, cancel := context.WithCancel(context.Background())
-	s := &Store{db: db, cancel: cancel}
+	s := &Store{db: db, cancel: cancel, dbPath: ":memory:"}
 	go s.shrinkLoop(ctx)
 	return s, nil
 }
 
-// Close shuts down the periodic shrink goroutine and closes the database.
+// Close shuts down the periodic shrink goroutine, closes the database, and
+// releases the advisory lock file mcp-buntdb's OpenBuntDB keeps open, so the
+// path can be reopened and no TempDir cleanup trips over a held handle
+// (0011-MADR).
 // STD-MCP-CLI-LIFECYCLE-001: callers MUST defer Close() immediately after Open().
 func (s *Store) Close() error {
 	s.cancel()
-	return s.db.Close()
+	err := s.db.Close()
+	mcpbuntdb.ReleaseDBLock(s.dbPath)
+	return err
 }
 
 // DB exposes the underlying BuntDB instance for direct use by sub-packages
