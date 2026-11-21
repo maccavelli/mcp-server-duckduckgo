@@ -94,6 +94,7 @@ func (t *MediaTool) Handle(ctx context.Context, request *mcp.CallToolRequest, in
 		Query:      input.Query,
 		TotalCount: len(results),
 		SearchType: t.Type,
+		Endpoint:   "DuckDuckGo",
 	}
 	response.Data.Results = mediaResults
 

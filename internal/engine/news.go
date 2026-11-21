@@ -4,14 +4,30 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strings"
 	"time"
+	"unicode"
 
 	"github.com/maccavelli/mcp-server-duckduckgo/internal/config"
 	"github.com/maccavelli/mcp-server-duckduckgo/internal/models"
 )
+
+var newsTagRe = regexp.MustCompile(`(?i)<[^>]+>`)
+
+var newsPhrases = []struct {
+	text string
+	df   string
+}{
+	{"right now", "d"},
+	{"today", "d"},
+	{"this week", "w"},
+	{"this month", "m"},
+}
 
 // NewsSearch performs a high-concurrency news search across multiple providers.
 func (e *SearchEngine) NewsSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error) {
@@ -26,21 +42,35 @@ func (e *SearchEngine) NewsSearch(ctx context.Context, query string, maxResults 
 		return r.URL
 	}
 
-	results, err := e.runProviders(ctx, query, maxResults, dedupeKey, providers...)
-	if err == nil {
-		return results, nil
+	if _, _, err := prepareNewsQuery(query); err != nil {
+		return nil, err
 	}
 
-	return e.BingWebSearch(ctx, query, maxResults)
+	return e.runProviders(ctx, query, maxResults, dedupeKey, providers...)
 }
 
 func (e *SearchEngine) ddgNewsSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error) {
-	vqd, err := e.getVQD(ctx, query)
+	q, df, err := prepareNewsQuery(query)
 	if err != nil {
 		return nil, err
 	}
 
-	u := fmt.Sprintf("https://duckduckgo.com/news.js?q=%s&vqd=%s&l=us-en&o=json&p=-1", url.QueryEscape(query), vqd)
+	vqd, err := e.getVQD(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	vals := url.Values{}
+	vals.Set("q", q)
+	vals.Set("vqd", vqd)
+	vals.Set("l", "us-en")
+	vals.Set("o", "json")
+	vals.Set("p", "-1")
+	vals.Set("noamp", "1")
+	if df != "" {
+		vals.Set("df", df)
+	}
+	u := "https://duckduckgo.com/news.js?" + vals.Encode()
 	req, err := e.newRequest(ctx, http.MethodGet, u, http.NoBody)
 	if err != nil {
 		return nil, err
@@ -96,11 +126,96 @@ func (e *SearchEngine) ddgNewsSearch(ctx context.Context, query string, maxResul
 		results = append(results, models.SearchResult{
 			Title:       r.Title,
 			URL:         r.URL,
-			Description: truncate(r.Excerpt, config.MaxSnippetLength),
+			Description: plainNewsExcerpt(r.Excerpt),
 			Source:      r.Source,
 			Date:        dateStr,
 			ImageURL:    r.Image,
 		})
 	}
 	return results, nil
+}
+
+func prepareNewsQuery(raw string) (string, string, error) {
+	runes := []rune(strings.Join(strings.Fields(raw), " "))
+	type span struct{ start, end int }
+	var spans []span
+	var dfs []string
+	for i := 0; i < len(runes); {
+		if i > 0 && newsWordRune(runes[i-1]) {
+			i++
+			continue
+		}
+		matched := false
+		for _, phrase := range newsPhrases {
+			pr := []rune(phrase.text)
+			end := i + len(pr)
+			if end > len(runes) || !newsEqualFold(runes[i:end], pr) {
+				continue
+			}
+			if phrase.text == "today" && end+1 < len(runes) && (runes[end] == '\'' || runes[end] == '\u2019') && runes[end+1] == 's' {
+				end += 2
+			}
+			if end < len(runes) && newsWordRune(runes[end]) {
+				continue
+			}
+			spans = append(spans, span{start: i, end: end})
+			dfs = append(dfs, phrase.df)
+			i = end
+			matched = true
+			break
+		}
+		if !matched {
+			i++
+		}
+	}
+
+	df := ""
+	for _, candidate := range []string{"d", "w", "m"} {
+		for _, got := range dfs {
+			if got == candidate {
+				df = candidate
+				break
+			}
+		}
+		if df != "" {
+			break
+		}
+	}
+
+	kept := make([]rune, 0, len(runes))
+	at := 0
+	for _, s := range spans {
+		kept = append(kept, runes[at:s.start]...)
+		at = s.end
+	}
+	kept = append(kept, runes[at:]...)
+	q := strings.Join(strings.Fields(string(kept)), " ")
+	if q == "" {
+		return "", "", fmt.Errorf("news query is empty")
+	}
+	return q, df, nil
+}
+
+func newsWordRune(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsDigit(r)
+}
+
+func newsEqualFold(a, b []rune) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if unicode.ToLower(a[i]) != unicode.ToLower(b[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func plainNewsExcerpt(s string) string {
+	s = html.UnescapeString(s)
+	s = newsTagRe.ReplaceAllString(s, "")
+	s = html.UnescapeString(s)
+	s = strings.Join(strings.Fields(s), " ")
+	return truncate(s, config.MaxSnippetLength)
 }

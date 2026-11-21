@@ -26,6 +26,7 @@ type SearchMetadata struct {
 	Query      string `json:"query"`
 	TotalCount int    `json:"total_count"`
 	SearchType string `json:"search_type"`
+	Endpoint   string `json:"endpoint,omitempty"`
 }
 
 // SearchResponse represents the formatted response for the MCP tool.

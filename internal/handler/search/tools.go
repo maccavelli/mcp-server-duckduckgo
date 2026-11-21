@@ -19,6 +19,8 @@ import (
 
 const searchTypeWeb = "web"
 
+const newsToolDesc = "[DIRECTIVE: Live Events and Journalism] Preferred choice for breaking developments, real-time updates, and current timeline information. Pass a short keyword query. The phrases today, right now, this week, and this month set freshness and are removed from the query sent to the news endpoint. Keywords: news, press, breaking, events, articles, temporal, journalism, headlines"
+
 // Engine defines the interface for engine searches.
 type Engine interface {
 	WebSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error)
@@ -91,6 +93,9 @@ func (t *Tool) Handle(ctx context.Context, request *mcp.CallToolRequest, input I
 		TotalCount: len(results),
 		SearchType: t.Type,
 	}
+	if t.Type == "news" {
+		response.Data.Metadata.Endpoint = "DuckDuckGo"
+	}
 	response.Data.Results = results
 
 	switch input.Format {
@@ -118,7 +123,7 @@ func Register(searchEngine Engine) {
 		Engine:     searchEngine,
 		Type:       "news",
 		SearchFunc: searchEngine.NewsSearch,
-		Desc:       "[DIRECTIVE: Live Events and Journalism] Preferred choice for breaking developments, real-time updates, and current timeline information. Keywords: news, press, breaking, events, articles, temporal, journalism, headlines",
+		Desc:       newsToolDesc,
 	})
 	registry.Global.Register(&Tool{
 		Engine:     searchEngine,
@@ -145,6 +150,7 @@ func fetchResultContents(ctx context.Context, eng Engine, results []models.Searc
 			fetched, err := eng.FetchContent(ctx, enriched[idx].URL)
 			if err != nil {
 				slog.Debug("fetch_content failed for result", "url", enriched[idx].URL, "error", err)
+				enriched[idx].Content = err.Error()
 				return
 			}
 			if fetched.Content != "" {

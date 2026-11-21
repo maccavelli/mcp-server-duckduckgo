@@ -32,8 +32,14 @@ Registered in `internal/handler/search/tools.go`.
 Description, from `internal/handler/search/tools.go`:
 
 ```text
-[DIRECTIVE: Live Events and Journalism] Preferred choice for breaking developments, real-time updates, and current timeline information. Keywords: news, press, breaking, events, articles, temporal, journalism, headlines
+[DIRECTIVE: Live Events and Journalism] Preferred choice for breaking developments, real-time updates, and current timeline information. Pass a short keyword query. The phrases today, right now, this week, and this month set freshness and are removed from the query sent to the news endpoint. Keywords: news, press, breaking, events, articles, temporal, journalism, headlines
 ```
+
+`search_news` sends the keyword query to DuckDuckGo news with `noamp=1`.
+`today` and `right now` set freshness to the past day (`df=d`).
+`this week` sets the past week (`df=w`). `this month` sets the past month (`df=m`).
+A query that is only one of those phrases returns the error `news query is empty` and does not call the network.
+News and video misses are errors. They are not replaced with Bing web results.
 
 The fields are the same as `search_web`, including `fetch_content`.
 

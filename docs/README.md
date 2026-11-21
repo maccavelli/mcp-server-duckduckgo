@@ -26,6 +26,8 @@ Records for this repository. The numbering sequence is repository-wide.
 | [0010](decisions/0010-PLAN-adopt-the-fleet-pre-add-wrapper.md) | PLAN | Implement the fleet pre-add wrapper |
 | [0011](decisions/0011-MADR-close-the-buntdb-lock-before-tempdir-cleanup.md) | MADR | Close the BuntDB lock file before TempDir cleanup so windows tests pass |
 | [0011](decisions/0011-PLAN-close-the-buntdb-lock-before-tempdir-cleanup.md) | PLAN | Close the BuntDB lock file before TempDir cleanup |
+| [0012](decisions/0012-MADR-repair-duckduckgo-news-video-and-fetch.md) | MADR | Repair DuckDuckGo news queries, video URLs, and empty page fetches |
+| [0012](decisions/0012-PLAN-repair-duckduckgo-news-video-and-fetch.md) | PLAN | Implement the DuckDuckGo news, video, and fetch repair |
 
 ## I want to…
 

@@ -48,6 +48,9 @@ func TestTool_Handle(t *testing.T) {
 	if resp == nil {
 		t.Error("expected non-nil response")
 	}
+	if got := resp.(models.SearchResponse).Data.Metadata.Endpoint; got != "" {
+		t.Errorf("web endpoint %q", got)
+	}
 
 	// Verify Name
 	if tool.Name() != "search_web" {

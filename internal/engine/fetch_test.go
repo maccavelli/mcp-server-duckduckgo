@@ -45,6 +45,8 @@ func TestExtractStructuredText(t *testing.T) {
 	if !strings.Contains(result, "```\ncode block\n```") {
 		t.Errorf("expected pre block: %s", result)
 	}
+
+	runExtractCellTests(t)
 }
 
 func setupMockEngine(t *testing.T, client *http.Client) *SearchEngine {

@@ -53,4 +53,6 @@ func TestNewsSearch(t *testing.T) {
 			t.Errorf("expected Title News 1, got %s", results[0].Title)
 		}
 	})
+
+	runNewsShapeTests(t)
 }

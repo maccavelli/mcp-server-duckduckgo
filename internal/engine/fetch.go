@@ -178,7 +178,7 @@ func (e *SearchEngine) FetchContent(parentCtx context.Context, rawURL string) (*
 	var contentNode *goquery.Selection
 	for _, sel := range contentSelectors {
 		found := doc.Find(sel)
-		if found.Length() > 0 {
+		if found.Length() > 0 && strings.TrimSpace(found.First().Text()) != "" {
 			contentNode = found.First()
 			break
 		}
@@ -209,7 +209,7 @@ func (e *SearchEngine) FetchContent(parentCtx context.Context, rawURL string) (*
 		return result, nil
 	}
 
-	// Extract text with structure preservation.
+	// Extract text with structure preservation. A blank extraction is the marker.
 	result.Content = extractStructuredText(contentNode)
 
 	// Truncate if excessively long (protect token budgets).
@@ -221,6 +221,28 @@ func (e *SearchEngine) FetchContent(parentCtx context.Context, rawURL string) (*
 
 	slog.Debug("content fetched successfully", "url", rawURL, "title", result.Title, "content_len", len(result.Content))
 	return result, nil
+}
+
+func cellNeedsSeparator(n *html.Node) bool {
+	if n.Parent == nil {
+		return false
+	}
+	cells := 0
+	later := false
+	passed := false
+	for c := n.Parent.FirstChild; c != nil; c = c.NextSibling {
+		if c.Type != html.ElementNode || (c.Data != "td" && c.Data != "th") {
+			continue
+		}
+		cells++
+		if passed {
+			later = true
+		}
+		if c == n {
+			passed = true
+		}
+	}
+	return cells >= 2 && later
 }
 
 // extractStructuredText walks the DOM and produces clean text with basic
@@ -267,7 +289,9 @@ func extractStructuredText(s *goquery.Selection) string {
 			case "pre":
 				b.WriteString("\n```\n")
 			case "td", "th":
-				b.WriteString(" | ")
+				if cellNeedsSeparator(n) {
+					b.WriteString(" | ")
+				}
 			case "tr":
 				b.WriteString("\n")
 			case "p", "div", htmlTagArticle, "section":
@@ -294,5 +318,9 @@ func extractStructuredText(s *goquery.Selection) string {
 	for strings.Contains(result, "\n\n\n") {
 		result = strings.ReplaceAll(result, "\n\n\n", "\n\n")
 	}
-	return strings.TrimSpace(result)
+	result = strings.TrimSpace(result)
+	if result == "" {
+		return "[No readable content extracted]"
+	}
+	return result
 }

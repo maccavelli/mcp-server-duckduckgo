@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/maccavelli/mcp-server-duckduckgo/internal/config"
 	"github.com/maccavelli/mcp-server-duckduckgo/internal/models"
@@ -25,12 +26,7 @@ func (e *SearchEngine) VideoSearch(ctx context.Context, query string, maxResults
 		return r.URL
 	}
 
-	results, err := e.runProviders(ctx, query, maxResults, dedupeKey, providers...)
-	if err == nil {
-		return results, nil
-	}
-
-	return e.BingWebSearch(ctx, query, maxResults)
+	return e.runProviders(ctx, query, maxResults, dedupeKey, providers...)
 }
 
 func (e *SearchEngine) ddgVideoSearch(ctx context.Context, query string, maxResults int) ([]models.SearchResult, error) {
@@ -64,7 +60,8 @@ func (e *SearchEngine) ddgVideoSearch(ctx context.Context, query string, maxResu
 	var data struct {
 		Results []struct {
 			Title       string `json:"title"`
-			URL         string `json:"url"`
+			Content     string `json:"content"`
+			EmbedURL    string `json:"embed_url"`
 			Description string `json:"description"`
 			Duration    string `json:"duration"`
 			Publisher   string `json:"publisher"`
@@ -81,9 +78,13 @@ func (e *SearchEngine) ddgVideoSearch(ctx context.Context, query string, maxResu
 		if i >= maxResults {
 			break
 		}
+		watch := strings.TrimSpace(r.Content)
+		if watch == "" {
+			watch = strings.TrimSpace(r.EmbedURL)
+		}
 		results = append(results, models.SearchResult{
 			Title:       r.Title,
-			URL:         r.URL,
+			URL:         watch,
 			Description: truncate(r.Description, config.MaxSnippetLength),
 			Duration:    r.Duration,
 			Publisher:   r.Publisher,

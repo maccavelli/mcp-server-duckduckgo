@@ -53,4 +53,6 @@ func TestVideoSearch(t *testing.T) {
 			t.Errorf("expected Title Video 1, got %s", results[0].Title)
 		}
 	})
+
+	runVideoShapeTests(t)
 }
